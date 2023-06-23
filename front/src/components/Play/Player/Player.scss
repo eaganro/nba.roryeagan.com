@@ -1,0 +1,12 @@
+.player {
+  position: relative;
+}
+
+.dot {
+  height: 5px;
+  width: 5px;
+  background-color: red;
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+}
