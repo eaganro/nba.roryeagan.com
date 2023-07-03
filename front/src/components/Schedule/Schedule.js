@@ -1,10 +1,6 @@
 import './Schedule.scss';
 export default function Schedule({ games, date, changeDate, changeGame }) {
 
-  // clickGame() {
-
-  // }
-
   const gamesList = games.map(g => {
     return (
       <div key={g.gameId} onClick={() => changeGame(g.gameId)}>

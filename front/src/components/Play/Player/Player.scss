@@ -5,8 +5,12 @@
 .dot {
   height: 5px;
   width: 5px;
-  background-color: red;
-  position: relative;
+  position: absolute;
   display: inline-block;
   border-radius: 50%;
+}
+
+.playerName {
+  display: inline-block;
+  width: 100px;
 }
