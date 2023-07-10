@@ -2,17 +2,36 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayPlayers, homePlayers, scoreTimeline }) {
+export default function Play({ awayPlayers, homePlayers, scoreTimeline, awayPlayerTimeline, homePlayerTimeline }) {
 
-  const awayRows = Object.values(awayPlayers).map(p => {
+  const playtimes = {};
+  Object.keys(awayPlayers).forEach(player => {
+    playtimes[player] = {
+      times: [],
+      on: false
+    };
+  });
+  Object.keys(awayPlayers).forEach(player => {
+    awayPlayers[player].forEach(action => {
+      if (action.actionType === 'Substitution') {
+
+      } else {
+        if (playtimes[player].on === false) {
+          playtimes[player].on = true;
+        }
+      }
+    });
+  });
+
+  const awayRows = Object.keys(awayPlayers).map(name => {
     return (
-      <Player key={p[0].actionId} actions={p}></Player>
+      <Player key={awayPlayers[name][0].actionId} actions={awayPlayers[name]} timeline={awayPlayerTimeline[name]}></Player>
     );
   });
 
-  const homeRows = Object.values(homePlayers).map(p => {
+  const homeRows = Object.keys(homePlayers).map(name => {
     return (
-      <Player key={p[0].actionId} actions={p}></Player>
+      <Player key={homePlayers[name][0].actionId} actions={homePlayers[name]} timeline={homePlayerTimeline[name]}></Player>
     );
   });
 
@@ -24,7 +43,6 @@ export default function Play({ awayPlayers, homePlayers, scoreTimeline }) {
     maxHomeLead = Math.min(maxHomeLead, scoreDiff);
     t.scoreDiff = scoreDiff;
   });
-  console.log(maxAwayLead, maxHomeLead)
 
   let maxLead = Math.max(maxAwayLead, maxHomeLead * -1);
 

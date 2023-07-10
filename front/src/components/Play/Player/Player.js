@@ -1,5 +1,5 @@
 import './Player.scss';
-export default function Player({ actions }) {
+export default function Player({ actions, timeline }) {
 
   const playerName = actions[0].playerNameI;
 
@@ -12,12 +12,9 @@ export default function Player({ actions }) {
     'Turnover': 1,
     'Free Throw': 1,
   }
-  let playTime = []
-  let dots = actions.filter(a => {
-    
 
-    return a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !==  'Violation'
-  }).map(a => {
+  // console.log(actions.filter(a => a.actionType === 'Substitution'));
+  let dots = actions.filter(a => a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !==  'Violation').map(a => {
     let pos = 97.5 + 350 * (a.period - 1) + (((12 - Number(a.clock.slice(2, 4))) * 60) - Number(a.clock.slice(5, 7))) * (350 / (12 * 60));
     let color = 'orange';
     if (a.description.includes('MISS')) {
@@ -40,11 +37,22 @@ export default function Player({ actions }) {
     return (
       <div key={a.actionId} className="dot" style={{left: `${pos}px`, backgroundColor: color}}></div>
     )
-  })
+  });
+
+  const playTimeLines = timeline.map(t => {
+    let x1 = 1400 * (t.start / (12 * 60 * 4));
+    let x2 = 1400 * (t.end / (12 * 60 * 4));
+    x2 = isNaN(x2) ? x1 : x2; 
+    return <line x1={x1} y1={12} x2={x2} y2={12} style={{"stroke":'rgb(0,0,255)', "stroke-width":1}} />
+  });
+
   return (
     <div className='player'>
       <div className='playerName'>{playerName}</div>
       {dots}
+      <svg width="1400" className='line'>
+        {playTimeLines}
+      </svg>
     </div>
   );
 }
