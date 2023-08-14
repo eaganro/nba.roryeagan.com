@@ -5,7 +5,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline }) {
+export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -14,9 +14,6 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
     setWindowWidth(window.innerWidth);
   });
 
-  // const { windowHeight, windowWidth } = getWindowDimensions();
-  // console.log(window.innerWidth);
-  // setTimeout(() => console.log(windowWidth), 2000);
   const playtimes = {};
   Object.keys(awayPlayers).forEach(player => {
     playtimes[player] = {
@@ -35,20 +32,21 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
       }
     });
   });
-  // console.log(windowWidth)
   const width = windowWidth * 0.9 - 100;
-  console.log(width)
-  const qWidth = width / 4;
+  let qWidth = width / 4;
+  if (numQs > 4) {
+    qWidth = width * (12 / (12 * 4 + 5 * (numQs - 4)))
+  }
 
   const awayRows = Object.keys(awayPlayers).map(name => {
     return (
-      <Player key={name} actions={awayPlayers[name]} timeline={awayPlayerTimeline[name]} name={name} width={width}></Player>
+      <Player key={name} actions={awayPlayers[name]} timeline={awayPlayerTimeline[name]} name={name} width={width} numQs={numQs}></Player>
     );
   });
 
   const homeRows = Object.keys(homePlayers).map(name => {
     return (
-      <Player key={name} actions={homePlayers[name]} timeline={homePlayerTimeline[name]} name={name} width={width}></Player>
+      <Player key={name} actions={homePlayers[name]} timeline={homePlayerTimeline[name]} name={name} width={width} numQs={numQs}></Player>
     );
   });
 
@@ -69,25 +67,34 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
   let starty = 0;
   const timeline = scoreTimeline.map((t, i) => {
     let x1 = startx;
-    let x2 =  (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    let x2 = (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    if (t.period > 4) {
+      x2 = ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    }
     startx = x2;
 
     let y1 = starty;
     let y2 = t.scoreDiff * - 300 / maxY;
     starty = y2;
     return ([
-      <line key={'one' + i} x1={100 + x1} y1={300 + y1} x2={100 + x2} y2={300 + y1} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />,
-      <line key={'two' + i} x1={100 + x2} y1={300 + y1} x2={100 + x2} y2={300 + y2} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />
+      <line period={t.period} key={'one' + i} x1={100 + x1} y1={300 + y1} x2={100 + x2} y2={300 + y1} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />,
+      <line period={t.period} key={'two' + i} x1={100 + x2} y1={300 + y1} x2={100 + x2} y2={300 + y2} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />
     ])
   }).flat();
 
-  timeline.push(<line key={'secondLast'} x1={100 + startx} y1={300 + starty} x2={100 + qWidth * 4} y2={300 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
+  timeline.push(<line key={'secondLast'} x1={100 + startx} y1={300 + starty} x2={100 + width} y2={300 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
   timeline.unshift(<line key={'Last'} x1={0} y1={300} x2={width + 100} y2={300} style={{ stroke: 'black', strokeWidth:1 }} />)
   timeline.unshift(<line key={'q1'} x1={100 + qWidth} y1={10} x2={100 + qWidth} y2={590} style={{ stroke:'black', strokeWidth:1 }} />)
   timeline.unshift(<line key={'q2'} x1={100 + qWidth * 2} y1={10} x2={100 + qWidth * 2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
   timeline.unshift(<line key={'q3'} x1={100 + qWidth * 3} y1={10} x2={100 + qWidth * 3} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
+  for (let q = 4; q < numQs; q += 1) {
+    let x1 = 100 + qWidth * 4 + (5/12 * qWidth) * (q - 4);
+    let x2 = 100 + qWidth * 4 + (5/12 * qWidth) * (q - 4);
+    timeline.unshift(<line key={`q${q}`} x1={x1} y1={10} x2={x2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
+  }
 
-  const descriptionList = descriptionArray.map(a => (<div>{a.description} - {a.clock}</div>));
+  const descriptionList = descriptionArray.map(a => (<div>{a.description}</div>));
+  descriptionArray[0] && descriptionArray[0] && descriptionList.unshift(<div>{descriptionArray[0].clock} - {descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}</div>)
 
   let showMouse = true;
   const mouseOver = (e) => {
@@ -119,7 +126,6 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
       for (let i = 0; i < sameTime; i += 1) {
         hoverActions.push(allActions[a - i]);
       }
-      // console.log(hoverActions.map(a => a.description));
       setDescriptionArray(hoverActions);
 
 

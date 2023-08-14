@@ -1,5 +1,5 @@
 import './Player.scss';
-export default function Player({ actions, timeline, name, width }) {
+export default function Player({ actions, timeline, name, width, numQs }) {
 
   const playerName = name;
 
@@ -13,11 +13,17 @@ export default function Player({ actions, timeline, name, width }) {
     'Free Throw': 1,
   }
 
-  const qWidth = width / 4;
+  let qWidth = width / 4;
+  if (numQs > 4) {
+    qWidth = width * (12 / (12 * 4 + 5 * (numQs - 4)))
+  }
 
   // console.log(actions.filter(a => a.actionType === 'Substitution'));
   let dots = actions.filter(a => a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !==  'Violation').map(a => {
-    let pos = 97.5 + qWidth * (a.period - 1) + (((12 - Number(a.clock.slice(2, 4))) * 60) - Number(a.clock.slice(5, 7))) * (qWidth / (12 * 60));
+    let pos = 97.5 + (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    if (a.period > 4) {
+      pos = 97.5 + ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    }
     let color = 'orange';
     if (a.description.includes('MISS')) {
       color = 'brown';
@@ -42,8 +48,14 @@ export default function Player({ actions, timeline, name, width }) {
   });
 
   const playTimeLines = timeline.map((t, i) => {
-    let x1 = width * (t.start / (12 * 60 * 4));
-    let x2 = width * (t.end / (12 * 60 * 4));
+    let x1 = 0 + (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.start)) / (4 * 12 * 60)) * (qWidth * 4);
+    if (t.period > 4) {
+      x1 = 0 + ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.start)) / (4 * 12 * 60)) * (qWidth * 4);
+    }
+    let x2 = 0 + (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.end)) / (4 * 12 * 60)) * (qWidth * 4);
+    if (t.period > 4) {
+      x2 = 0 + ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.end)) / (4 * 12 * 60)) * (qWidth * 4);
+    }
     x2 = isNaN(x2) ? x1 : x2; 
     return <line key={i} x1={x1} y1={12} x2={x2} y2={12} style={{ stroke: 'rgb(0,0,255)', strokeWidth: 1 }} />
   });
@@ -52,9 +64,23 @@ export default function Player({ actions, timeline, name, width }) {
     <div className='player'>
       <div className='playerName'>{playerName}</div>
       {dots}
-      <svg width="1400" className='line'>
+      <svg width={width} height="20" className='line'>
         {playTimeLines}
       </svg>
     </div>
   );
+}
+
+function timeToSeconds(time) {
+  // Convert time string in the format "PT12M00.00S" to seconds
+  const match = time.match(/PT(\d+)M(\d+)\.(\d+)S/);
+  
+  if (match) {
+    const minutes = parseInt(match[1] || 0);
+    const seconds = parseInt(match[2] || 0);
+    const milliseconds = parseInt(match[3] || 0);
+    return minutes * 60 + seconds + milliseconds / 100;
+  }
+  
+  return 0;
 }

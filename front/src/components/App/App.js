@@ -8,11 +8,11 @@ import StatButtons from '../StatButtons/StatButtons';
 import './App.scss';
 export default function App() {
 
-  const [date, setDate] = useState("2022-11-28");
+  const [date, setDate] = useState("2022-01-29");
   const [games, setGames] = useState([]);
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
-  const [gameId, setGameId] = useState("0022200299");
+  const [gameId, setGameId] = useState("0022100748");
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
@@ -28,6 +28,7 @@ export default function App() {
 
 
   const [statOn, setStatOn] = useState([true, false, true, true, false, false, false, false]);
+  const [numQs, setNumQs] = useState(4);
 
 
 
@@ -53,6 +54,11 @@ export default function App() {
       setHomeTeamId(boxData.homeTeamId);
 
       const play = d[1];
+      if (play[play.length - 1] && play[play.length - 1].period > 4) {
+        setNumQs(play[play.length - 1].period);
+      } else {
+        setNumQs(4);
+      }
       setPlayByPlay(play);
       // processPlayData(play);
     })
@@ -166,14 +172,14 @@ export default function App() {
           Object.keys(awayPlaytimes).forEach(player => {
             if(awayPlaytimes[player].on === true) {
               let t = awayPlaytimes[player].times;
-              t[t.length - 1].end = currentQ * 12 * 60;
+              t[t.length - 1].end = "PT00M00.00S";
               awayPlaytimes[player].on = false;
             }
           });
           Object.keys(homePlaytimes).forEach(player => {
             if(homePlaytimes[player].on === true) {
               let t = homePlaytimes[player].times;
-              t[t.length - 1].end = currentQ * 12 * 60;
+              t[t.length - 1].end = "PT00M00.00S";
               homePlaytimes[player].on = false;
             }
           });
@@ -187,7 +193,7 @@ export default function App() {
             name = name.split(' ')[1];
           }
           if(awayPlaytimes[name]) {
-            awayPlaytimes[name].times.push({ start: (a.period) * 12 * 60 - timeToSeconds(a.clock) });
+            awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
             awayPlaytimes[name].on = true;
           } else {
             console.log('PROBLEM: Player Name Not Found');
@@ -195,18 +201,18 @@ export default function App() {
           
           let t = awayPlaytimes[a.playerName].times;
           if (t.length === 0) {
-            t.push({ start: (a.period - 1) * 12 * 60 });
+            t.push({ start: "PT12M00.00S", period: a.period });
           }
-          t[t.length - 1].end = (a.period) * 12 * 60 - timeToSeconds(a.clock);
+          t[t.length - 1].end = a.clock;
           awayPlaytimes[a.playerName].on = false;
         } else {
           if (a.playerName && awayPlaytimes[a.playerName].on === false) {
             awayPlaytimes[a.playerName].on = true;
-            awayPlaytimes[a.playerName].times.push({ start: (a.period - 1) * 12 * 60 });
+            awayPlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period });
             
           } else if(a.playerName && awayPlaytimes[a.playerName].on === true) {
             let t = awayPlaytimes[a.playerName].times;
-            t[t.length - 1].end = (a.period) * 12 * 60 - timeToSeconds(a.clock);
+            t[t.length - 1].end = a.clock;
           }
         }
       }
@@ -220,14 +226,14 @@ export default function App() {
           Object.keys(homePlaytimes).forEach(player => {
             if(homePlaytimes[player].on === true) {
               let t = homePlaytimes[player].times;
-              t[t.length - 1].end = currentQ * 12 * 60;
+              t[t.length - 1].end = "PT00M00.00S";
               homePlaytimes[player].on = false;
             }
           });
           Object.keys(awayPlaytimes).forEach(player => {
             if(awayPlaytimes[player].on === true) {
               let t = awayPlaytimes[player].times;
-              t[t.length - 1].end = currentQ * 12 * 60;
+              t[t.length - 1].end = "PT00M00.00S";
               awayPlaytimes[player].on = false;
             }
           });
@@ -241,7 +247,7 @@ export default function App() {
             name = name.split(' ')[1];
           }
           if(homePlaytimes[name]) {
-            homePlaytimes[name].times.push({ start: (a.period) * 12 * 60 - timeToSeconds(a.clock) });
+            homePlaytimes[name].times.push({ start: a.clock, period: a.period });
             homePlaytimes[name].on = true;
           } else {
             console.log('PROBLEM: Player Name Not Found');
@@ -249,18 +255,18 @@ export default function App() {
 
           let t = homePlaytimes[a.playerName].times;
           if (t.length === 0) {
-            t.push({ start: (a.period - 1) * 12 * 60 });
+            t.push({ start: "PT12M00.00S", period: a.period });
           }
-          t[t.length - 1].end = (a.period) * 12 * 60 - timeToSeconds(a.clock);
+          t[t.length - 1].end = a.clock;
           homePlaytimes[a.playerName].on = false;
         } else {
           if (a.playerName && homePlaytimes[a.playerName].on === false) {
             homePlaytimes[a.playerName].on = true;
-            homePlaytimes[a.playerName].times.push({ start: (a.period - 1) * 12 * 60 });
+            homePlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period });
             
           } else if(a.playerName && homePlaytimes[a.playerName].on === true) {
             let t = homePlaytimes[a.playerName].times;
-            t[t.length - 1].end = (a.period) * 12 * 60 - timeToSeconds(a.clock);
+            t[t.length - 1].end = a.clock;
           }
         }
       }
@@ -268,14 +274,14 @@ export default function App() {
     Object.keys(homePlaytimes).forEach(player => {
       if(homePlaytimes[player].on === true) {
         let t = homePlaytimes[player].times;
-        t[t.length - 1].end = currentQ * 12 * 60;
+        t[t.length - 1].end = "PT00M00.00S";
       }
       homePlaytimes[player] = homePlaytimes[player].times;
     });
     Object.keys(awayPlaytimes).forEach(player => {
       if(awayPlaytimes[player].on === true) {
         let t = awayPlaytimes[player].times;
-        t[t.length - 1].end = currentQ * 12 * 60;
+        t[t.length - 1].end = "PT00M00.00S";
       }
       awayPlaytimes[player] = awayPlaytimes[player].times;
     });
@@ -409,7 +415,8 @@ export default function App() {
         allActions={allActions}
         scoreTimeline={scoreTimeline}
         awayPlayerTimeline={awayPlayerTimeline}
-        homePlayerTimeline={homePlayerTimeline}></Play>
+        homePlayerTimeline={homePlayerTimeline}
+        numQs={numQs}></Play>
       <StatButtons statOn={statOn} changeStatOn={changeStatOn}></StatButtons>
       <Boxscore box={box}></Boxscore>
     </div>
