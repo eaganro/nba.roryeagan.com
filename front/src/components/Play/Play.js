@@ -1,4 +1,5 @@
-import { useRef, useLayoutEffect, useState } from 'react';
+import { useState } from 'react';
+// import getWindowDimensions from '../hooks/windowDimensions';
 
 import Player from './Player/Player';
 
@@ -7,13 +8,15 @@ import './Play.scss';
 export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // const ref = useRef(null);
-  // useLayoutEffect(() => {
-  //   const { height } = ref.current.getBoundingClientRect();
-  //   console.log('Measured tooltip height: ' + height);
-  // }, []);
+  window.addEventListener("resize", () => {
+    setWindowWidth(window.innerWidth);
+  });
 
+  // const { windowHeight, windowWidth } = getWindowDimensions();
+  // console.log(window.innerWidth);
+  // setTimeout(() => console.log(windowWidth), 2000);
   const playtimes = {};
   Object.keys(awayPlayers).forEach(player => {
     playtimes[player] = {
@@ -32,8 +35,9 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
       }
     });
   });
-
-  const width = 700;
+  // console.log(windowWidth)
+  const width = windowWidth * 0.9 - 100;
+  console.log(width)
   const qWidth = width / 4;
 
   const awayRows = Object.keys(awayPlayers).map(name => {
@@ -69,19 +73,19 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
     startx = x2;
 
     let y1 = starty;
-    let y2 = t.scoreDiff * -250 / maxY;
+    let y2 = t.scoreDiff * - 300 / maxY;
     starty = y2;
     return ([
-      <line key={'one' + i} x1={100 + x1} y1={250 + y1} x2={100 + x2} y2={250 + y1} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />,
-      <line key={'two' + i} x1={100 + x2} y1={250 + y1} x2={100 + x2} y2={250 + y2} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />
+      <line key={'one' + i} x1={100 + x1} y1={300 + y1} x2={100 + x2} y2={300 + y1} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />,
+      <line key={'two' + i} x1={100 + x2} y1={300 + y1} x2={100 + x2} y2={300 + y2} style={{ stroke: 'rgb(255,0,0)', strokeWidth: 2 }} />
     ])
   }).flat();
 
-  timeline.push(<line key={'secondLast'} x1={100 + startx} y1={250 + starty} x2={100 + qWidth * 4} y2={250 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
-  timeline.unshift(<line key={'Last'} x1={0} y1={250} x2={1500} y2={250} style={{ stroke: 'black', strokeWidth:1 }} />)
-  timeline.unshift(<line key={'q1'} x1={100 + qWidth} y1={10} x2={100 + qWidth} y2={490} style={{ stroke:'black', strokeWidth:1 }} />)
-  timeline.unshift(<line key={'q2'} x1={100 + qWidth * 2} y1={10} x2={100 + qWidth * 2} y2={490} style={{ stroke: 'black', strokeWidth: 1 }} />)
-  timeline.unshift(<line key={'q3'} x1={100 + qWidth * 3} y1={10} x2={100 + qWidth * 3} y2={490} style={{ stroke: 'black', strokeWidth: 1 }} />)
+  timeline.push(<line key={'secondLast'} x1={100 + startx} y1={300 + starty} x2={100 + qWidth * 4} y2={300 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
+  timeline.unshift(<line key={'Last'} x1={0} y1={300} x2={width + 100} y2={300} style={{ stroke: 'black', strokeWidth:1 }} />)
+  timeline.unshift(<line key={'q1'} x1={100 + qWidth} y1={10} x2={100 + qWidth} y2={590} style={{ stroke:'black', strokeWidth:1 }} />)
+  timeline.unshift(<line key={'q2'} x1={100 + qWidth * 2} y1={10} x2={100 + qWidth * 2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
+  timeline.unshift(<line key={'q3'} x1={100 + qWidth * 3} y1={10} x2={100 + qWidth * 3} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
 
   const descriptionList = descriptionArray.map(a => (<div>{a.description} - {a.clock}</div>));
 
@@ -125,9 +129,9 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
   }
 
   return (
-    <div onMouseMove={mouseOver} className='play'>
-      <div class="descriptionArea">{descriptionList}</div>
-      <svg height="500" width="1500" className='line'>
+    <div onMouseMove={mouseOver} className='play' style={{ width: width + 100 }}>
+      <div className="descriptionArea">{descriptionList}</div>
+      <svg height="600" width={width + 100} className='line'>
         {timeline}
       </svg>
       <div className='teamSection'>
