@@ -200,7 +200,7 @@ export default function App() {
           }
           
           let t = awayPlaytimes[a.playerName].times;
-          if (t.length === 0) {
+          if (awayPlaytimes[a.playerName].on === false) {
             t.push({ start: "PT12M00.00S", period: a.period });
           }
           t[t.length - 1].end = a.clock;
@@ -208,8 +208,7 @@ export default function App() {
         } else {
           if (a.playerName && awayPlaytimes[a.playerName].on === false) {
             awayPlaytimes[a.playerName].on = true;
-            awayPlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period });
-            
+            awayPlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });     
           } else if(a.playerName && awayPlaytimes[a.playerName].on === true) {
             let t = awayPlaytimes[a.playerName].times;
             t[t.length - 1].end = a.clock;
@@ -254,7 +253,7 @@ export default function App() {
           }
 
           let t = homePlaytimes[a.playerName].times;
-          if (t.length === 0) {
+          if (homePlaytimes[a.playerName].on === false) {
             t.push({ start: "PT12M00.00S", period: a.period });
           }
           t[t.length - 1].end = a.clock;
@@ -262,8 +261,7 @@ export default function App() {
         } else {
           if (a.playerName && homePlaytimes[a.playerName].on === false) {
             homePlaytimes[a.playerName].on = true;
-            homePlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period });
-            
+            homePlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });
           } else if(a.playerName && homePlaytimes[a.playerName].on === true) {
             let t = homePlaytimes[a.playerName].times;
             t[t.length - 1].end = a.clock;
