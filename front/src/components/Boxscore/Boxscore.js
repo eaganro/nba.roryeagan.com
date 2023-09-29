@@ -9,8 +9,8 @@ export default function Boxscore({ box }) {
       awayTeamTotals[k] += p.statistics[k];
     });
     return (
-      <div key={p.personId} className={ "rowGrid " + (i % 2 === 0 ? "even" : "odd") }>
-        <span>{p.firstName} {p.familyName}</span>
+      <div key={p.personId} className={ "rowGrid stat " + (i % 2 === 0 ? "even" : "odd") }>
+        <span className="playerNameCol">{p.firstName} {p.familyName}</span>
         <span>{p.statistics.minutes}</span>
         <span>{p.statistics.fieldGoalsMade}</span>
         <span>{p.statistics.fieldGoalsAttempted}</span>
@@ -35,8 +35,8 @@ export default function Boxscore({ box }) {
     )
   });
   const awayTotalRow = awayBox && (
-    <div className={ "rowGrid " + (awayBox.length % 2 === 0 ? 'even' : 'odd')}>
-      <span>TEAM</span>
+    <div className={ "rowGrid stat " + (awayBox.length % 2 === 0 ? 'even' : 'odd')}>
+      <span className="playerNameCol">TEAM</span>
       <span></span>
       <span>{awayTeamTotals.fieldGoalsMade}</span>
       <span>{awayTeamTotals.fieldGoalsAttempted}</span>
@@ -56,7 +56,7 @@ export default function Boxscore({ box }) {
       <span>{awayTeamTotals.turnovers}</span>
       <span>{awayTeamTotals.foulsPersonal}</span>
       <span>{awayTeamTotals.points}</span>
-      <span>{awayTeamTotals.plusMinusPoints}</span>
+      <span></span>
     </div>
   );
 
@@ -68,8 +68,8 @@ export default function Boxscore({ box }) {
       homeTeamTotals[k] += p.statistics[k];
     });
     return (
-      <div key={p.personId} className={ "rowGrid " + (i % 2 === 0 ? "even" : "odd") }>
-        <span>{p.firstName} {p.familyName}</span>
+      <div key={p.personId} className={ "rowGrid stat " + (i % 2 === 0 ? "even" : "odd") }>
+        <span className="playerNameCol">{p.firstName} {p.familyName}</span>
         <span>{p.statistics.minutes}</span>
         <span>{p.statistics.fieldGoalsMade}</span>
         <span>{p.statistics.fieldGoalsAttempted}</span>
@@ -94,8 +94,8 @@ export default function Boxscore({ box }) {
     )
   });
   const homeTotalRow = homeBox && (
-    <div className={ "rowGrid " + (homeBox.length % 2 === 0 ? 'even' : 'odd')}>
-      <span>TEAM</span>
+    <div className={ "rowGrid stat " + (homeBox.length % 2 === 0 ? 'even' : 'odd')}>
+      <span className="playerNameCol">TEAM</span>
       <span></span>
       <span>{homeTeamTotals.fieldGoalsMade}</span>
       <span>{homeTeamTotals.fieldGoalsAttempted}</span>
@@ -115,41 +115,54 @@ export default function Boxscore({ box }) {
       <span>{homeTeamTotals.turnovers}</span>
       <span>{homeTeamTotals.foulsPersonal}</span>
       <span>{homeTeamTotals.points}</span>
-      <span>{homeTeamTotals.plusMinusPoints}</span>
+      <span></span>
+    </div>
+  );
+
+  const statHeadings = (
+    <div className="rowGrid statHeadings">
+      <span>PLAYER</span>
+      <span>MIN</span>
+      <span>FGM</span>
+      <span>FGA</span>
+      <span>FG%</span>
+      <span>3PM</span>
+      <span>3PA</span>
+      <span>3P%</span>
+      <span>FTM</span>
+      <span>FTA</span>
+      <span>FT%</span>
+      <span>OREB</span>
+      <span>DREB</span>
+      <span>REB</span>
+      <span>AST</span>
+      <span>STL</span>
+      <span>BLK</span>
+      <span>TO</span>
+      <span>PF</span>
+      <span>PTS</span>
+      <span>+/-</span>
     </div>
   );
 
   return (
     <div className='box'>
-      <div className="rowGrid">{box ? <img height="40" width="40" src={`img/teams/${box?.awayTeam?.teamTricode}.png`}></img> : ''}</div>
-      <div className="rowGrid">
-        <span>PLAYER</span>
-        <span>MIN</span>
-        <span>FGM</span>
-        <span>FGA</span>
-        <span>FG%</span>
-        <span>3PM</span>
-        <span>3PA</span>
-        <span>3P%</span>
-        <span>FTM</span>
-        <span>FTA</span>
-        <span>FT%</span>
-        <span>OREB</span>
-        <span>DREB</span>
-        <span>REB</span>
-        <span>AST</span>
-        <span>STL</span>
-        <span>BLK</span>
-        <span>TO</span>
-        <span>PF</span>
-        <span>PTS</span>
-        <span>+/-</span>
+      <div className="rowGrid teamRow">
+        <div className="team">
+          {box ? <img height="30" width="30" src={`img/teams/${box?.awayTeam?.teamTricode}.png`}></img> : ''}
+          <span>{box?.awayTeam?.teamName}</span>
+        </div>
       </div>
-      <div className="rowGrid team">Away</div>
+      {statHeadings}
       {awayBox}
       {awayTotalRow}
-      <div className="rowGrid">{box ? <img height="40" width="40" src={`img/teams/${box?.homeTeam?.teamTricode}.png`}></img> : ''}</div>
-      <div className="rowGrid team">Home</div>
+      <div className="rowGrid teamRow">
+        <div className="team">
+          {box ? <img height="30" width="30" src={`img/teams/${box?.homeTeam?.teamTricode}.png`}></img> : ''}
+          <span>{box?.homeTeam?.teamName}</span>
+        </div>
+      </div>
+      {statHeadings}
       {homeBox}
       {homeTotalRow}
     </div>
