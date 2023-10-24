@@ -408,7 +408,9 @@ export default function App() {
   return (
     <div className='topLevel'>
       <Schedule games={games} date={date} changeDate={changeDate} changeGame={changeGame}></Schedule>
-      <Play 
+      <Play
+        awayTeamName={box?.awayTeam?.teamName || 'Away Team'}
+        homeTeamName={box?.homeTeam?.teamName || 'Home Team'}
         awayPlayers={awayActions}
         homePlayers={homeActions}
         allActions={allActions}

@@ -5,8 +5,9 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs }) {
+export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs }) {
 
+  console.log(awayPlayers)
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -140,12 +141,12 @@ export default function Play({ awayPlayers, homePlayers, allActions, scoreTimeli
       <svg height="600" width={width + 100} className='line'>
         {timeline}
       </svg>
+      <div class="teamName">{awayTeamName}</div>
       <div className='teamSection'>
-        away
         {awayRows}
       </div>
+      <div class="teamName">{homeTeamName}</div>
       <div className='teamSection'>
-        home
         {homeRows}
       </div>
     </div>

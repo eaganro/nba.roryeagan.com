@@ -1,5 +1,6 @@
 .player {
   position: relative;
+  height: 25px;
 }
 
 .dot {
@@ -15,4 +16,8 @@
 .playerName {
   display: inline-block;
   width: 100px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
