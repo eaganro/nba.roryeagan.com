@@ -45,14 +45,14 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
       color = 'black';
     }
     let style = {
-      left: `${pos - 2.5}px`,
+      left: `${pos - 0}px`,
       backgroundColor: color
     };
     if (highlight.includes(a.actionId)) {
       style.width = '10px';
       style.height = '10px';
       style.top = '7.5px';
-      style.left = `${pos - 5}px`;
+      style.left = `${pos - 2.5}px`;
     }
     return (
       <div key={a.actionId} className="dot" style={style}></div>
