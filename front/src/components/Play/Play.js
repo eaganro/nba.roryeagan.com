@@ -134,7 +134,11 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
         hoverActions.push(allActions[a - i]);
       }
       setDescriptionArray(hoverActions);
-      setMouseLinePos(pos + 100);
+      if (pos < 0 || pos > width) {
+        setMouseLinePos(null);
+      } else {
+        setMouseLinePos(pos + 100);
+      }
 
 
       // setShowMouse(false);
@@ -142,14 +146,21 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
     }
   }
 
+  const mouseOut = (e) => {
+    setMouseLinePos(null);
+    setDescriptionArray([]);
+  }
+
   return (
-    <div onMouseMove={mouseOver} className='play' style={{ width: width + 100 }}>
+    <div onMouseMove={mouseOver} onMouseOut={mouseOut} className='play' style={{ width: width + 100 }}>
       <div className="descriptionArea">{descriptionList}</div>
       <svg height="600" width={width + 100} className='line'>
         {timeline}
       </svg>
       <svg height="600" width={width + 100} className='line'>
-        <line x1={mouseLinePos} y1={10} x2={mouseLinePos} y2={590} style={{ stroke: 'grey', strokeWidth: 1 }} />
+        {mouseLinePos !== null ? 
+          <line x1={mouseLinePos} y1={10} x2={mouseLinePos} y2={590} style={{ stroke: 'grey', strokeWidth: 1 }} />
+          : ''}
       </svg>
       <div class="teamName">{awayTeamName}</div>
       <div className='teamSection'>
