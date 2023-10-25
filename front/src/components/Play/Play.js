@@ -39,15 +39,17 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
     qWidth = width * (12 / (12 * 4 + 5 * (numQs - 4)))
   }
 
+  const awayLength = Object.keys(awayPlayers).length;
   const awayRows = Object.keys(awayPlayers).map(name => {
     return (
-      <Player key={name} actions={awayPlayers[name]} timeline={awayPlayerTimeline[name]} name={name} width={width} numQs={numQs}></Player>
+      <Player key={name} actions={awayPlayers[name]} timeline={awayPlayerTimeline[name]} name={name} width={width} numQs={numQs} heightDivide={awayLength}></Player>
     );
   });
 
+  const homeLength = Object.keys(homePlayers).length;
   const homeRows = Object.keys(homePlayers).map(name => {
     return (
-      <Player key={name} actions={homePlayers[name]} timeline={homePlayerTimeline[name]} name={name} width={width} numQs={numQs}></Player>
+      <Player key={name} actions={homePlayers[name]} timeline={homePlayerTimeline[name]} name={name} width={width} numQs={numQs} heightDivide={homeLength}></Player>
     );
   });
 

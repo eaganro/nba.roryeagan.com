@@ -1,8 +1,5 @@
 .play {
   border: 1px solid black;
-  // height: 600px;
-  // width: 800px;
-  // margin-left: 200px;
   margin: auto;
   margin-top: 20px;
   background-color: rgb(250, 250, 250);
@@ -17,14 +14,7 @@
   height: 275px;
   display: flex;
   flex-direction: column;
-  // justify-content: space-evenly;
   font-weight: bold;
-  // padding-top: 25px;
-
-  // position: relative;
-
-  overflow-y: scroll;
-  overflow-x: hidden;
 }
 
 .descriptionArea {

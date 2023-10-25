@@ -1,5 +1,5 @@
 import './Player.scss';
-export default function Player({ actions, timeline, name, width, numQs }) {
+export default function Player({ actions, timeline, name, width, numQs, heightDivide }) {
 
   const playerName = name;
 
@@ -61,7 +61,7 @@ export default function Player({ actions, timeline, name, width, numQs }) {
   });
 
   return (
-    <div className='player'>
+    <div className='player' style={{ height: `${275/heightDivide}px`}}>
       <div className='playerName'>{playerName}</div>
       {dots}
       <svg width={width} height="20" className='line'>
