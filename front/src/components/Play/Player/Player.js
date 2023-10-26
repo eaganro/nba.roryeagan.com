@@ -1,5 +1,5 @@
 import './Player.scss';
-export default function Player({ actions, timeline, name, width, numQs, heightDivide, highlight }) {
+export default function Player({ actions, timeline, name, width, numQs, heightDivide, highlight, leftMargin }) {
 
   const playerName = name;
 
@@ -22,9 +22,9 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
   let dots = actions
   .filter(a => a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !==  'Violation')
   .map(a => {
-    let pos = 100 + (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    let pos = leftMargin + (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
     if (a.period > 4) {
-      pos = 100 + ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      pos = leftMargin + ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
     }
     let color = 'orange';
     if (a.description.includes('MISS')) {
@@ -60,13 +60,13 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
   });
 
   const playTimeLines = timeline.map((t, i) => {
-    let x1 = 0 + (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.start)) / (4 * 12 * 60)) * (qWidth * 4);
+    let x1 = (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.start)) / (4 * 12 * 60)) * (qWidth * 4);
     if (t.period > 4) {
-      x1 = 0 + ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.start)) / (4 * 12 * 60)) * (qWidth * 4);
+      x1 = ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.start)) / (4 * 12 * 60)) * (qWidth * 4);
     }
-    let x2 = 0 + (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.end)) / (4 * 12 * 60)) * (qWidth * 4);
+    let x2 = (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.end)) / (4 * 12 * 60)) * (qWidth * 4);
     if (t.period > 4) {
-      x2 = 0 + ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.end)) / (4 * 12 * 60)) * (qWidth * 4);
+      x2 = ((4 * 12 * 60 + 5 * (t.period - 4) * 60 - timeToSeconds(t.end)) / (4 * 12 * 60)) * (qWidth * 4);
     }
     x2 = isNaN(x2) ? x1 : x2; 
     return <line key={i} x1={x1} y1={12} x2={x2} y2={12} style={{ stroke: 'rgb(0,0,255)', strokeWidth: 1 }} />
@@ -74,7 +74,7 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
 
   return (
     <div className='player' style={{ height: `${275/heightDivide}px`}}>
-      <div className='playerName'>{playerName}</div>
+      <div className='playerName' style={{ width: leftMargin }}>{playerName}</div>
       {dots}
       <svg width={width} height="20" className='line'>
         {playTimeLines}
