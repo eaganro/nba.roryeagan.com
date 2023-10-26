@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import Schedule from '../Schedule/Schedule';
 import Boxscore from '../Boxscore/Boxscore';
@@ -24,6 +24,9 @@ export default function App() {
   const [scoreTimeline, setScoreTimeline] = useState([]);
   const [homePlayerTimeline, setHomePlayerTimeline] = useState([]);
   const [awayPlayerTimeline, setAwayPlayerTimeline] = useState([]);
+
+
+  const [playByPlaySectionWidth, setPlayByPlaySectionWidth] = useState(0);
 
 
 
@@ -404,21 +407,33 @@ export default function App() {
     statOnNew[index] = !statOnNew[index];
     setStatOn(statOnNew);
   }
+  
+  const playByPlaySectionRef = useRef();
+  useEffect(() => {
+    const observer = new ResizeObserver(entries => {
+      setPlayByPlaySectionWidth(entries[0].contentRect.width)
+    })
+    observer.observe(playByPlaySectionRef.current)
+    return () => ref.current && observer.unobserve(ref.current)
+  }, []);
 
   return (
     <div className='topLevel'>
       <Schedule games={games} date={date} changeDate={changeDate} changeGame={changeGame}></Schedule>
-      <Play
-        awayTeamName={box?.awayTeam?.teamName || 'Away Team'}
-        homeTeamName={box?.homeTeam?.teamName || 'Home Team'}
-        awayPlayers={awayActions}
-        homePlayers={homeActions}
-        allActions={allActions}
-        scoreTimeline={scoreTimeline}
-        awayPlayerTimeline={awayPlayerTimeline}
-        homePlayerTimeline={homePlayerTimeline}
-        numQs={numQs}></Play>
-      <StatButtons statOn={statOn} changeStatOn={changeStatOn}></StatButtons>
+      <div className='playByPlaySection' ref = {playByPlaySectionRef}>
+        <Play
+          awayTeamName={box?.awayTeam?.teamName || 'Away Team'}
+          homeTeamName={box?.homeTeam?.teamName || 'Home Team'}
+          awayPlayers={awayActions}
+          homePlayers={homeActions}
+          allActions={allActions}
+          scoreTimeline={scoreTimeline}
+          awayPlayerTimeline={awayPlayerTimeline}
+          homePlayerTimeline={homePlayerTimeline}
+          numQs={numQs}
+          sectionWidth={playByPlaySectionWidth}></Play>
+        <StatButtons statOn={statOn} changeStatOn={changeStatOn}></StatButtons>
+      </div>
       <Boxscore box={box}></Boxscore>
     </div>
   );
