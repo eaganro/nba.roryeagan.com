@@ -108,7 +108,7 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
 
   const descriptionList = descriptionArray.map(a => (<div>{a.description}</div>));
   descriptionArray[0] && descriptionArray[0] && descriptionList.unshift(<div>{descriptionArray[0].clock} - {descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}</div>)
-
+  console.log(descriptionArray[0]);
   let mouseLine = null;
   const mouseOver = (e) => {
     if (showMouse) {
