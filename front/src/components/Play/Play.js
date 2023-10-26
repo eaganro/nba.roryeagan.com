@@ -5,7 +5,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs }) {
+export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -36,7 +36,8 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
       }
     });
   });
-  const width = Math.min(windowWidth * 0.9 - 100, 1135);
+  // const width = Math.min(windowWidth * 0.9 - 100, 1135);
+  const width = sectionWidth * 1 - 100;
   console.log(width);
   
   let qWidth = width / 4;
