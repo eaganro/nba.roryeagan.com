@@ -4,8 +4,10 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
 
   const gamesList = games.map(g => {
     return (
-      <div key={g.gameId} onClick={() => changeGame(g.gameId)}>
-        {g.away} - {g.home}
+      <div className='game' key={g.gameId} onClick={() => changeGame(g.gameId)}>
+        <div>{g.away} - {g.home}</div>
+        <div>{'sco'} - {'sco'}</div>
+        <div>{'time'}</div>
       </div>
     )
   });
