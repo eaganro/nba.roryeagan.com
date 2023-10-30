@@ -15,13 +15,18 @@
 
 .dateInput {
   min-width: 120px;
+  height: 30px;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .games {
   display: flex;
   margin-left: 10px;
   overflow-x: scroll;
-  div {
+  text-align: center;
+
+  .game {
     margin-right: 20px;
 
     white-space: nowrap;
