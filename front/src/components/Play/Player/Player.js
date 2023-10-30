@@ -22,9 +22,9 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
   let dots = actions
   .filter(a => a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !==  'Violation')
   .map(a => {
-    let pos = leftMargin + (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    let pos = (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
     if (a.period > 4) {
-      pos = leftMargin + ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      pos = ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
     }
     let color = 'orange';
     if (a.description.includes('MISS')) {
@@ -45,7 +45,7 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
       color = 'black';
     }
     let style = {
-      left: `${pos - 0}px`,
+      // left: `${pos - 0}px`,
       backgroundColor: color
     };
     if (highlight.includes(a.actionId)) {
@@ -55,7 +55,8 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
       style.left = `${pos - 2.5}px`;
     }
     return (
-      <div key={a.actionId} className="dot" style={style}></div>
+      <circle key={a.actionId} fill={color} cx={pos} cy="12" r="3" />
+      // <div key={a.actionId} className="dot" style={style}></div>
     );
   });
 
@@ -75,9 +76,9 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
   return (
     <div className='player' style={{ height: `${275/heightDivide}px`}}>
       <div className='playerName' style={{ width: 90 }}>{playerName}</div>
-      {dots}
       <svg width={width} height="20" className='line' style={{left: leftMargin}}>
         {playTimeLines}
+        {dots}
       </svg>
     </div>
   );
