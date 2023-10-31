@@ -32,6 +32,7 @@ export default function App() {
 
   const [statOn, setStatOn] = useState([true, false, true, true, false, false, false, false]);
   const [numQs, setNumQs] = useState(4);
+  const [lastAction, setLastAction] = useState(null);
 
 
 
@@ -62,6 +63,7 @@ export default function App() {
       } else {
         setNumQs(4);
       }
+      setLastAction(play[play.length - 1])
       setPlayByPlay(play);
       // processPlayData(play);
     })
@@ -395,7 +397,7 @@ export default function App() {
       homePlayers[k] = filterPlayer;
     });
 
-    allAct.sort((a, b) => a.actionNumber - b.actionNumber);
+    allAct = sortActions(allAct);
 
     setAllActions(allAct);
     setAwayActions(awayPlayers);
@@ -441,7 +443,8 @@ export default function App() {
           awayPlayerTimeline={awayPlayerTimeline}
           homePlayerTimeline={homePlayerTimeline}
           numQs={numQs}
-          sectionWidth={playByPlaySectionWidth}></Play>
+          sectionWidth={playByPlaySectionWidth}
+          lastAction={lastAction}></Play>
         <StatButtons statOn={statOn} changeStatOn={changeStatOn}></StatButtons>
       </div>
       <Boxscore box={box}></Boxscore>
@@ -461,4 +464,20 @@ function timeToSeconds(time) {
   }
   
   return 0;
+}
+
+function sortActions(actions) {
+  return actions.slice().sort((a, b) => {
+    if (a.period < b.period) {
+      return -1;
+    } else if (a.period > b.period) {
+      return 1;
+    } else {
+      if (timeToSeconds(a.clock) > timeToSeconds(b.clock)) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }
+  });
 }

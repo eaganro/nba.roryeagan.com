@@ -5,7 +5,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth }) {
+export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -119,6 +119,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
   let pospoints = [`${leftMargin},300`];
   let negpoints = [`${leftMargin},300`];
 
+  let pos = true; 
   scoreTimeline.forEach((t, i) => {
       let x1 = startx;
       let x2 = (((t.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(t.clock)) / (4 * 12 * 60)) * (qWidth * 4);
@@ -130,35 +131,46 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
       let y2 = t.scoreDiff * -300 / maxY;
 
       if (y1 <= 0) {
-          pospoints.push(`${leftMargin + x2},${300 + y1}`);
-          if (y2 <= 0) {
-            pospoints.push(`${leftMargin + x2},${300 + y2}`);
-          } else {
-            pospoints.push(`${leftMargin + x2},${300}`);
-            negpoints.push(`${leftMargin + x2},${300}`);
-            negpoints.push(`${leftMargin + x2},${300 + y2}`);
-          }
+        pos = true;
+        pospoints.push(`${leftMargin + x2},${300 + y1}`);
+        if (y2 <= 0) {
+          pospoints.push(`${leftMargin + x2},${300 + y2}`);
+        } else {
+          pospoints.push(`${leftMargin + x2},${300}`);
+          negpoints.push(`${leftMargin + x2},${300}`);
+          negpoints.push(`${leftMargin + x2},${300 + y2}`);
+        }
       } else {
-          negpoints.push(`${leftMargin + x2},${300 + y1}`);
-          if (y2 >= 0) {
-            negpoints.push(`${leftMargin + x2},${300 + y2}`);
-          } else {
-            negpoints.push(`${leftMargin + x2},${300}`);
-            pospoints.push(`${leftMargin + x2},${300}`);
-            pospoints.push(`${leftMargin + x2},${300 + y2}`);
-          }
+        pos = false;
+        negpoints.push(`${leftMargin + x2},${300 + y1}`);
+        if (y2 >= 0) {
+          negpoints.push(`${leftMargin + x2},${300 + y2}`);
+        } else {
+          negpoints.push(`${leftMargin + x2},${300}`);
+          pospoints.push(`${leftMargin + x2},${300}`);
+          pospoints.push(`${leftMargin + x2},${300 + y2}`);
+        }
       }
       
       startx = x2;
       starty = y2;
   });
-  pospoints.push(`2000,300`);
-  negpoints.push(`2000,300`);
 
-
-
-  
-  // points.push('2000,300');
+  if (lastAction) {
+    let lastX = (((lastAction.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(lastAction.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    if (lastAction.period > 4) {
+      lastX = ((4 * 12 * 60 + 5 * (lastAction.period - 4) * 60 - timeToSeconds(lastAction.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+    }
+    if(pos) {
+      pospoints.push(`${leftMargin + lastX},${300 + starty}`);
+      pospoints.push(`${leftMargin + lastX},300`);
+      negpoints.push(`2000,300`);
+    } else{
+      negpoints.push(`${leftMargin + lastX},${300 + starty}`);
+      negpoints.push(`${leftMargin + lastX},300`);
+      pospoints.push(`2000,300`);
+    }
+  }
 
 
   // let startx = 0;
