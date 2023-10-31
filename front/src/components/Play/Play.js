@@ -5,7 +5,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth }) {
+export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -14,6 +14,42 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
   const [highlightActionIds, setHighlightActionIds] = useState([]);
 
   const leftMargin = 120;
+
+  const awayTeamName = awayTeamNames.name;
+  const homeTeamName = homeTeamNames.name;
+
+  const teamColor = {
+    ATL: 'rgb(224 58 62)',
+    BKN: 'rgb(0 0 0)',
+    BOS: 'rgb(0 122 51)',
+    CHA: 'rgb(29 17 96)',
+    CHI: 'rgb(206 17 65)',
+    CLE: 'rgb(134 0 56)',
+    DAL: 'rgb(0 83 140)',
+    DEN: 'rgb(14 34 64)',
+    DET: 'rgb(200 16 46)',
+    GSW: 'rgb(29 66 138)',
+    HOU: 'rgb(206 17 65)',
+    IND: 'rgb(0 45 98)',
+    LAC: 'rgb(200 16 46)',
+    LAL: 'rgb(85 37 131)',
+    MEM: 'rgb(93 118 169)',
+    MIA: 'rgb(152 0 46)',
+    MIL: 'rgb(0 71 27)',
+    MIN: 'rgb(12 35 64)',
+    NOP: 'rgb(12 35 64)',
+    NYK: 'rgb(0 107 182)',
+    OKC: 'rgb(0 122 193)',
+    ORL: 'rgb(0 119 192)',
+    PHI: 'rgb(0 107 182)',
+    PHX: 'rgb(29 17 96)',
+    POR: 'rgb(224 58 62)',
+    SAC: 'rgb(90 45 129)',
+    SAS: 'rgb(196 206 212)',
+    TOR: 'rgb(206 17 65)',
+    UTA: 'rgb(0 43 92)',
+    WAS: 'rgb(0 43 92)',
+  };
 
 
   window.addEventListener("resize", () => {
@@ -145,7 +181,7 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
   // }).flat();
 
   const timeline = [];
-  timeline.push(<line key={'secondLast'} x1={leftMargin + startx} y1={300 + starty} x2={leftMargin + width} y2={300 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
+  // timeline.push(<line key={'secondLast'} x1={leftMargin + startx} y1={300 + starty} x2={leftMargin + width} y2={300 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
   timeline.unshift(<line key={'Last'} x1={0} y1={300} x2={leftMargin + width} y2={300} style={{ stroke: 'black', strokeWidth:1 }} />)
   timeline.unshift(<line key={'q1'} x1={leftMargin + qWidth} y1={10} x2={leftMargin + qWidth} y2={590} style={{ stroke:'black', strokeWidth:1 }} />)
   timeline.unshift(<line key={'q2'} x1={leftMargin + qWidth * 2} y1={10} x2={leftMargin + qWidth * 2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
@@ -244,13 +280,15 @@ export default function Play({ awayTeamName, homeTeamName, awayPlayers, homePlay
     setDescriptionArray([]);
   }
 
+  let awayColor = awayTeamNames.abr ? rgbToRgba(teamColor[awayTeamNames.abr], 0.3) : '';
+  let homeColor = homeTeamNames.abr ? rgbToRgba(teamColor[homeTeamNames.abr], 0.3) : '';
   return (
     <div onMouseMove={mouseOver} onMouseOut={mouseOut} className='play' style={{ width: width + leftMargin }}>
       <div className="descriptionArea">{descriptionList}</div>
       <svg height="600" width={width + leftMargin} className='line'>
         {timeline}
-        <polyline points={pospoints.join(' ')} style={{"fill": "red"}}/>
-        <polyline points={negpoints.join(' ')} style={{"fill": "blue"}}/>
+        <polyline points={pospoints.join(' ')} style={{"fill": awayColor}}/>
+        <polyline points={negpoints.join(' ')} style={{"fill": homeColor}}/>
       </svg>
       <svg height="600" width={width + leftMargin} className='line'>
         {mouseLinePos !== null ? 
@@ -281,4 +319,8 @@ function timeToSeconds(time) {
   }
   
   return 0;
+}
+
+function rgbToRgba(rgb, a) {
+  return rgb.replaceAll(' ', ', ').replace('rgb', 'rgba').replace(')', `, ${a})`);
 }

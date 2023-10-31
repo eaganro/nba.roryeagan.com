@@ -417,13 +417,23 @@ export default function App() {
     return () => ref.current && observer.unobserve(ref.current)
   }, []);
 
+
+  let awayTeamName = {
+    name: box?.awayTeam?.teamName || 'Away Team',
+    abr: box?.awayTeam?.teamTricode || '',
+  };
+  let homeTeamName = {
+    name: box?.homeTeam?.teamName || 'Away Team',
+    abr: box?.homeTeam?.teamTricode || '',
+  };
+
   return (
     <div className='topLevel'>
       <Schedule games={games} date={date} changeDate={changeDate} changeGame={changeGame}></Schedule>
       <div className='playByPlaySection' ref = {playByPlaySectionRef}>
         <Play
-          awayTeamName={box?.awayTeam?.teamName || 'Away Team'}
-          homeTeamName={box?.homeTeam?.teamName || 'Home Team'}
+          awayTeamNames={awayTeamName}
+          homeTeamNames={homeTeamName}
           awayPlayers={awayActions}
           homePlayers={homeActions}
           allActions={allActions}
