@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import * as fs from 'fs';
 import puppeteer from 'puppeteer';
 
-schedule.scheduleJob('0 8 * * *', () => {
+// schedule.scheduleJob('0 8 * * *', () => {
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
   console.log(todayString);
@@ -20,45 +20,69 @@ schedule.scheduleJob('0 8 * * *', () => {
       return !dateList ? [] : obj.props.pageProps.oldrollingschedule.find(d => d.gameDate === todayString).games.map((g, i) => {
         return {
           url: `${g.visitorTeam.teamTricode}-vs-${g.homeTeam.teamTricode}-${g.gameId}`,
-          startTime: new Date(g.gameDateTimeUTC)
+          startTime: new Date(g.gameDateTimeEst)
         };
       });
     }
 
     let gameUrls = await getGames();
     console.log(gameUrls);
-    const browser = await puppeteer.launch({headless: true});
-    gameUrls.forEach(game => {
+    // const browser = await puppeteer.launch({headless: true});
+    const browser = await puppeteer.launch({
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ],
+      // executablePath: '/usr/bin/chromium',
+      headless: true
+    });
+    gameUrls.forEach(async (game) => {
       let gameId = game.url.slice(-10);
       let startTime = game.startTime;
       let fourHoursLater = new Date(startTime.getTime() + 4 * 60 * 60 * 1000);
-      schedule.scheduleJob((new Date), async () => {
+      // schedule.scheduleJob((new Date), async () => {
         const page = await browser.newPage();
         await page.setDefaultNavigationTimeout(0);
         let lastActionIndex = -1;
-        const writeStream = fs.createWriteStream(`public/playByPlayData/${gameId}.json`);
+        console.log('1', gameId)
+        let firstTime = true;
         page.on('response', async (response) => {
           if (response.url().includes('playbyplay')) {
             const actions = (await response.json())?.game?.actions;
             const newActions = actions.filter((_, index) => index > lastActionIndex);
             lastActionIndex = actions.length - 1;
+            if (firstTime) {
+              fs.writeFileSync(`public/data/playByPlayData/${gameId}.json`, JSON.stringify(newActions[0]) + '\n', 'utf8');
+              newActions.shift();
+              firstTime = false;
+            }
             newActions.forEach(action => {
-              writeStream.write(JSON.stringify(action) + '\n', err => {
-                if (err) {
-                  console.error('Error writing to file', err);
-                }
-              });
+              console.log('written ' + action.actionNumber);
+              fs.appendFileSync(`public/data/playByPlayData/${gameId}.json`, JSON.stringify(action) + '\n', 'utf8');
             });
           }
+          if (response.url().includes('boxscore')) {
+            if (response.ok()) {
+              console.log('box')
+              const box = (await response.json())?.game;
+              fs.writeFileSync(`public/data/boxData/${gameId}.json`, JSON.stringify(box), 'utf8');
+            }
+          }
         });
+        console.log(`https://www.nba.com/game/${game.url}`)
         await page.goto(`https://www.nba.com/game/${game.url}`);
 
         schedule.scheduleJob(fourHoursLater, () => {
-          writeStream.end();
           page.close(); // close the page
         });
-      });
+      // });
       
     });
   })();
-});
+// });
