@@ -49,7 +49,7 @@ export default function App() {
   }, [date]);
 
   useEffect(() => {
-    Promise.all([fetch(`/data/boxData/${gameId}`), fetch(`/data/playByPlayData/${gameId}`)]).then(d => {
+    Promise.all([fetch(`/data/boxData/${gameId}.json`), fetch(`/data/playByPlayData/${gameId}.json`)]).then(d => {
       return Promise.all(d.map(r => r.json()));
     }).then(d => {
       const boxData = d[0];

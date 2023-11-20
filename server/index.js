@@ -1,5 +1,5 @@
-import schedule from './public/data/schedule/schedule.js';
 import express from 'express';
+import schedule from './public/data/schedule/schedule.json' assert { type: 'json' };
 
 const app = express();
 const port = 3000;
