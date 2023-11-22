@@ -75,7 +75,6 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     });
   });
   const width = sectionWidth * 1 - leftMargin;
-  console.log(width);
   
   let qWidth = width / 4;
   if (numQs > 4) {
@@ -226,18 +225,17 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
   };
   for (let i = 0; i < numLines; i += 1) {
     let posy = 300 + ((i + 1) * lineJump) * - 300 / maxY
-    timeline.unshift(<line key={`sp${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={posy} x2={leftMargin + width} y2={posy} strokeDasharray={"5,5"} style={{ stroke: 'lightgrey', strokeWidth: 3 }} />)
+    timeline.unshift(<line key={`sp${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={posy} x2={leftMargin + width} y2={posy} strokeDasharray={"5,5"} style={{ stroke: 'darkgrey', strokeWidth: 0.5 }} />)
     timeline.unshift(<text x={leftMargin - 10} y={posy + 5} text-anchor="end">{(i + 1) * lineJump}</text>)
     
     let negy = 300 + (-1 * (i + 1) * lineJump) * - 300 / maxY
-    timeline.unshift(<line key={`sn${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={negy} x2={leftMargin + width} y2={negy} strokeDasharray={"5,5"} style={{ stroke: 'lightgrey', strokeWidth: 3 }} />)
+    timeline.unshift(<line key={`sn${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={negy} x2={leftMargin + width} y2={negy} strokeDasharray={"5,5"} style={{ stroke: 'darkgrey', strokeWidth: 0.5 }} />)
     timeline.unshift(<text x={leftMargin - 10} y={negy + 5} text-anchor="end">{-1 * (i + 1) * lineJump}</text>)
   }
 
 
   const descriptionList = descriptionArray.map(a => (<div>{a.description}</div>));
   descriptionArray[0] && descriptionArray[0] && descriptionList.unshift(<div>{descriptionArray[0].clock} - {descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}</div>)
-  console.log(descriptionArray[0]);
   let mouseLine = null;
   const mouseOver = (e) => {
     if (showMouse) {

@@ -8,10 +8,11 @@ import StatButtons from '../StatButtons/StatButtons';
 import './App.scss';
 export default function App() {
 
-  const [date, setDate] = useState("2022-01-29");
+  const [date, setDate] = useState("2023-11-19");
   const [games, setGames] = useState([]);
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
+  // const [gameId, setGameId] = useState("0022300216");
   const [gameId, setGameId] = useState("0022100748");
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
@@ -82,7 +83,6 @@ export default function App() {
   }
 
   const processPlayData = (data) => {
-    console.log(data);
     if (data.length === 0) {
       return [];
     }
@@ -121,23 +121,32 @@ export default function App() {
         }
       }
 
-      if(a.teamId === awayTeamId) {
-        if (!awayPlayers[a.playerName]) {
-          awayPlayers[a.playerName] = [a];
-        } else {
-          awayPlayers[a.playerName].push(a);
-        }
-        if (a.description.includes('AST')) {
-          awayAssistActions.push(a);
-        }
-      } else if(a.teamId === homeTeamId) {
-        if (!homePlayers[a.playerName]) {
-          homePlayers[a.playerName] = [a];
-        } else {
-          homePlayers[a.playerName].push(a);
-        }
-        if (a.description.includes('AST')) {
-          homeAssistActions.push(a);
+      let playerName = a.playerName;
+
+      let nameLoc = a.description.indexOf(a.playerName);
+      if (nameLoc > 0 && a.description[nameLoc - 2] === '.') {
+        playerName = a.description.slice(a.description.slice(0, nameLoc - 2).lastIndexOf(' ') + 1, nameLoc + a.playerName.length);
+      }
+
+      if (playerName) {
+        if(a.teamId === awayTeamId) {
+          if (!awayPlayers[playerName]) {
+            awayPlayers[playerName] = [a];
+          } else {
+            awayPlayers[playerName].push(a);
+          }
+          if (a.description.includes('AST')) {
+            awayAssistActions.push(a);
+          }
+        } else if(a.teamId === homeTeamId) {
+          if (!homePlayers[playerName]) {
+            homePlayers[playerName] = [a];
+          } else {
+            homePlayers[playerName].push(a);
+          }
+          if (a.description.includes('AST')) {
+            homeAssistActions.push(a);
+          }
         }
       }
     });
@@ -172,6 +181,13 @@ export default function App() {
     let currentQ = 1;
     data.forEach(a => {
 
+      let playerName = a.playerName;
+
+      let nameLoc = a.description.indexOf(a.playerName);
+      if (nameLoc > 0 && a.description[nameLoc - 2] === '.') {
+        playerName = a.description.slice(a.description.slice(0, nameLoc - 2).lastIndexOf(' ') + 1, nameLoc + a.playerName.length);
+      }
+
 
       if(a.teamId === awayTeamId) {
         if(a.period !== currentQ) {
@@ -195,18 +211,24 @@ export default function App() {
           let startName = a.description.indexOf('SUB:') + 5;
           let endName = a.description.indexOf('FOR') - 1;
           let name = a.description.slice(startName, endName);
-          if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
-            name = name.split(' ')[1];
-          }
+          // if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
+          //   name = name.split(' ')[1];
+          // }
           if(awayPlaytimes[name]) {
             awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
             awayPlaytimes[name].on = true;
           } else {
-            console.log('PROBLEM: Player Name Not Found');
+            awayPlaytimes[name] = {
+              times: [],
+              on: false,
+            };
+            awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
+            awayPlaytimes[name].on = true;
+            console.log('PROBLEM: Player Name Not Found', name);
           }
           
-          let t = awayPlaytimes[a.playerName].times;
-          if (awayPlaytimes[a.playerName].on === false) {
+          let t = awayPlaytimes[playerName].times;
+          if (awayPlaytimes[playerName].on === false) {
             if (a.period <= 4) {
               t.push({ start: "PT12M00.00S", period: a.period });
             } else {
@@ -214,13 +236,13 @@ export default function App() {
             }
           }
           t[t.length - 1].end = a.clock;
-          awayPlaytimes[a.playerName].on = false;
+          awayPlaytimes[playerName].on = false;
         } else {
-          if (a.playerName && awayPlaytimes[a.playerName].on === false) {
-            awayPlaytimes[a.playerName].on = true;
-            awayPlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });     
-          } else if(a.playerName && awayPlaytimes[a.playerName].on === true) {
-            let t = awayPlaytimes[a.playerName].times;
+          if (playerName && awayPlaytimes[playerName].on === false) {
+            awayPlaytimes[playerName].on = true;
+            awayPlaytimes[playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });     
+          } else if(playerName && awayPlaytimes[playerName].on === true) {
+            let t = awayPlaytimes[playerName].times;
             t[t.length - 1].end = a.clock;
           }
         }
@@ -252,18 +274,24 @@ export default function App() {
           let startName = a.description.indexOf('SUB:') + 5;
           let endName = a.description.indexOf('FOR') - 1;
           let name = a.description.slice(startName, endName);
-          if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
-            name = name.split(' ')[1];
-          }
+          // if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
+          //   name = name.split(' ')[1];
+          // }
           if(homePlaytimes[name]) {
             homePlaytimes[name].times.push({ start: a.clock, period: a.period });
             homePlaytimes[name].on = true;
           } else {
-            console.log('PROBLEM: Player Name Not Found');
+            homePlaytimes[name] = {
+              times: [],
+              on: false,
+            };
+            homePlaytimes[name].times.push({ start: a.clock, period: a.period });
+            homePlaytimes[name].on = true;
+            console.log('PROBLEM: Player Name Not Found', name, homePlaytimes);
           }
 
-          let t = homePlaytimes[a.playerName].times;
-          if (homePlaytimes[a.playerName].on === false) {
+          let t = homePlaytimes[playerName].times;
+          if (homePlaytimes[playerName].on === false) {
             if (a.period <= 4) {
               t.push({ start: "PT12M00.00S", period: a.period });
             } else {
@@ -271,17 +299,17 @@ export default function App() {
             }
           }
           t[t.length - 1].end = a.clock;
-          homePlaytimes[a.playerName].on = false;
+          homePlaytimes[playerName].on = false;
         } else {
-          if (a.playerName && homePlaytimes[a.playerName].on === false) {
-            homePlaytimes[a.playerName].on = true;
+          if (playerName && homePlaytimes[playerName].on === false) {
+            homePlaytimes[playerName].on = true;
             if (a.period <= 4) {
-              homePlaytimes[a.playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });
+              homePlaytimes[playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });
             } else {
-              homePlaytimes[a.playerName].times.push({ start: "PT05M00.00S", period: a.period, end: a.clock });
+              homePlaytimes[playerName].times.push({ start: "PT05M00.00S", period: a.period, end: a.clock });
             }
-          } else if(a.playerName && homePlaytimes[a.playerName].on === true) {
-            let t = homePlaytimes[a.playerName].times;
+          } else if(playerName && homePlaytimes[playerName].on === true) {
+            let t = homePlaytimes[playerName].times;
             t[t.length - 1].end = a.clock;
           }
         }
@@ -313,8 +341,11 @@ export default function App() {
       let lastSpace = a.description.lastIndexOf(' ');
       let endName = startName + a.description.slice(startName, lastSpace).lastIndexOf(' ');
       let name = a.description.slice(startName, endName);
-      if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
-        name = name.split(' ')[1];
+      // if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
+      //   name = name.split(' ')[1];
+      // }
+      if (awayPlayers[name] === undefined) {
+        awayPlayers[name] = [];
       }
       awayPlayers[name].push({
         actionType: 'Assist',
@@ -325,9 +356,9 @@ export default function App() {
         teamId: a.teamId,
         scoreHome: a.scoreHome,
         scoreAway: a.scoreAway,
-        personId: awayPlayers[name][0].personId,
-        playerName: awayPlayers[name][0].playerName,
-        playerNameI: awayPlayers[name][0].playerNameI,
+        personId: awayPlayers[name][0]?.personId,
+        playerName: awayPlayers[name][0]?.playerName,
+        playerNameI: awayPlayers[name][0]?.playerNameI,
         period: a.period
       });
     });
@@ -337,9 +368,9 @@ export default function App() {
       let lastSpace = a.description.lastIndexOf(' ');
       let endName = startName + a.description.slice(startName, lastSpace).lastIndexOf(' ');
       let name = a.description.slice(startName, endName);
-      if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
-        name = name.split(' ')[1];
-      }
+      // if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
+      //   name = name.split(' ')[1];
+      // }
       homePlayers[name].push({
         actionType: 'Assist',
         clock: a.clock,
@@ -349,9 +380,9 @@ export default function App() {
         teamId: a.teamId,
         scoreHome: a.scoreHome,
         scoreAway: a.scoreAway,
-        personId: homePlayers[name][0].personId,
-        playerName: homePlayers[name][0].playerName,
-        playerNameI: homePlayers[name][0].playerNameI,
+        personId: homePlayers[name][0]?.personId,
+        playerName: homePlayers[name][0]?.playerName,
+        playerNameI: homePlayers[name][0]?.playerNameI,
         period: a.period
       })
     });
