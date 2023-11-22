@@ -8,12 +8,12 @@ import StatButtons from '../StatButtons/StatButtons';
 import './App.scss';
 export default function App() {
 
-  const [date, setDate] = useState("2023-11-19");
+  const [date, setDate] = useState("2023-11-21");
   const [games, setGames] = useState([]);
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
   // const [gameId, setGameId] = useState("0022300216");
-  const [gameId, setGameId] = useState("0022100748");
+  const [gameId, setGameId] = useState("0022300040");
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
@@ -35,7 +35,43 @@ export default function App() {
   const [numQs, setNumQs] = useState(4);
   const [lastAction, setLastAction] = useState(null);
 
+  const [ws, setWs] = useState(null);
 
+  useEffect(() => {
+    const newWs = new WebSocket('ws://localhost:3000');
+    setWs(newWs);
+
+    newWs.onopen = () => {
+      console.log('Connected to WebSocket');
+      newWs.send(JSON.stringify({ type: 'gameId', gameId }));
+    };
+
+    newWs.onmessage = (event) => {
+      // console.log('Message from server ', event.data);
+      const { play, box } = JSON.parse(event.data);
+
+      setBox(box);
+      setAwayTeamId(box.awayTeamId);
+      setHomeTeamId(box.homeTeamId);
+
+      if (play[play.length - 1] && play[play.length - 1].period > 4) {
+        setNumQs(play[play.length - 1].period);
+      } else {
+        setNumQs(4);
+      }
+      setLastAction(play[play.length - 1])
+      setPlayByPlay(play);
+      setPlayByPlay(play);
+    };
+
+    newWs.onclose = () => {
+      console.log('Disconnected from WebSocket');
+    };
+
+    return () => {
+      newWs.close();
+    };
+  }, []);
 
   useEffect(() => {
     fetch(`/games?date=${date}`).then(r =>  {
@@ -50,24 +86,28 @@ export default function App() {
   }, [date]);
 
   useEffect(() => {
-    Promise.all([fetch(`/data/boxData/${gameId}.json`), fetch(`/data/playByPlayData/${gameId}.json`)]).then(d => {
-      return Promise.all(d.map(r => r.json()));
-    }).then(d => {
-      const boxData = d[0];
-      setBox(boxData);
-      setAwayTeamId(boxData.awayTeamId);
-      setHomeTeamId(boxData.homeTeamId);
+    if (ws) {
+      ws.send(JSON.stringify({ type: 'gameId', gameId }));
+    }
+    // Promise.all([fetch(`/data/boxData/${gameId}.json`), fetch(`/data/playByPlayData/${gameId}.json`)]).then(d => {
+    // Promise.all([fetch(`/data/boxData/${gameId}.json`)]).then(d => {
+    //   return Promise.all(d.map(r => r.json()));
+    // }).then(d => {
+    //   const boxData = d[0];
+    //   setBox(boxData);
+    //   setAwayTeamId(boxData.awayTeamId);
+    //   setHomeTeamId(boxData.homeTeamId);
 
-      const play = d[1];
-      if (play[play.length - 1] && play[play.length - 1].period > 4) {
-        setNumQs(play[play.length - 1].period);
-      } else {
-        setNumQs(4);
-      }
-      setLastAction(play[play.length - 1])
-      setPlayByPlay(play);
-      // processPlayData(play);
-    })
+    //   // const play = d[1];
+    //   // if (play[play.length - 1] && play[play.length - 1].period > 4) {
+    //   //   setNumQs(play[play.length - 1].period);
+    //   // } else {
+    //   //   setNumQs(4);
+    //   // }
+    //   // setLastAction(play[play.length - 1])
+    //   // setPlayByPlay(play);
+    //   // processPlayData(play);
+    // })
   }, [gameId]);
 
   useEffect(() => {

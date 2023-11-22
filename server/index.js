@@ -1,8 +1,96 @@
 import express from 'express';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// import { EventEmitter } from 'events';
+
+
+import testGame from './public/data/playByPlayData/0022300040.json' assert { type: 'json' };
 import schedule from './public/data/schedule/schedule.json' assert { type: 'json' };
 
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+// const dataUpdateEmitter = new EventEmitter();
 const port = 3000;
+
+
+const gameSubscriptions = {};
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', async (message) => {
+    const data = JSON.parse(message);
+    if (data.type === 'gameId') {
+      const gameId = data.gameId;
+
+      if (ws.gameId && gameSubscriptions[ws.gameId]) {
+        gameSubscriptions[ws.gameId].delete(ws);
+      }
+
+      ws.gameId = gameId;
+      if (!gameSubscriptions[gameId]) {
+        gameSubscriptions[gameId] = new Set();
+      }
+      gameSubscriptions[gameId].add(ws);
+
+      const playFilePath = path.join(__dirname, 'public', 'data', 'playByPlayData', `${gameId}.json`);
+      const boxFilePath = path.join(__dirname, 'public', 'data', 'boxData', `${gameId}.json`);
+      try {
+        const play = JSON.parse(await fs.readFile(playFilePath, 'utf8'));
+        const box = JSON.parse(await fs.readFile(boxFilePath, 'utf8'));
+        ws.send(JSON.stringify({play, box}));
+      } catch (error) {
+        console.error('Error reading file:', error);
+        ws.send(JSON.stringify({ error: 'Failed to read data' }));
+      }
+    }
+    console.log('received: %s', message);
+  });
+
+  ws.on('close', () => {
+    if (ws.gameId && gameSubscriptions[ws.gameId]) {
+      gameSubscriptions[ws.gameId].delete(ws);
+    }
+  });
+
+  console.log('connected')
+  // ws.send('something');
+
+  // dataUpdateEmitter.on('newData', (data) => {
+  //   console.log('there')
+  //   console.log(data.length)
+  //   ws.send(JSON.stringify(data));
+  // });
+});
+
+const onDataUpdate = (gameId, newData) => {
+  const subscribers = gameSubscriptions[gameId];
+  if (subscribers) {
+    subscribers.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(newData));
+      }
+    });
+  }
+  console.log('here')
+  // dataUpdateEmitter.emit('newData', newData);
+};
+
+const emitEvent = function(i) {
+  console.log(i);
+  if (i < testGame.length) {
+    onDataUpdate(testGame.slice(0, i + 1));
+    setTimeout(()=> {
+      emitEvent(i + 1);
+    }, 500 * Math.random());
+  }
+}
+// emitEvent(0);
 
 app.use(express.static('./public'));
 
@@ -43,6 +131,6 @@ app.get('/game', (req, res) => {
   res.send(gamesArray);
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
