@@ -264,6 +264,7 @@ export default function App() {
             };
             awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
             awayPlaytimes[name].on = true;
+            awayPlayers[name] = [];
             console.log('PROBLEM: Player Name Not Found', name);
           }
           
@@ -327,6 +328,7 @@ export default function App() {
             };
             homePlaytimes[name].times.push({ start: a.clock, period: a.period });
             homePlaytimes[name].on = true;
+            homePlayers[name] = [];
             console.log('PROBLEM: Player Name Not Found', name, homePlaytimes);
           }
 
