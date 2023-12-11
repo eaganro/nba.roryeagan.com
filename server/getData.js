@@ -6,7 +6,6 @@ import myEmitter from './eventEmitter.js';
 
 import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json' };
 // import testGame from './public/data/playByPlayData/0022300111.json' assert { type: 'json' };
-
 // schedule.scheduleJob('0 8 * * *', () => {
   const today = new Date();
   const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() >= 10 ? today.getDate() : '0' + today.getDate()}`
