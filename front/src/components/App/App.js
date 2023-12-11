@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import Schedule from '../Schedule/Schedule';
+import Score from '../Score/Score';
 import Boxscore from '../Boxscore/Boxscore';
 import Play from '../Play/Play';
 import StatButtons from '../StatButtons/StatButtons';
@@ -8,12 +9,12 @@ import StatButtons from '../StatButtons/StatButtons';
 import './App.scss';
 export default function App() {
 
-  const [date, setDate] = useState("2023-11-30");
+  const [date, setDate] = useState("2023-12-07");
   const [games, setGames] = useState([]);
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
   // const [gameId, setGameId] = useState("0022300216");
-  const [gameId, setGameId] = useState("0022300271");
+  const [gameId, setGameId] = useState("0062300001");
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
@@ -31,7 +32,8 @@ export default function App() {
 
 
 
-  const [statOn, setStatOn] = useState([true, false, true, true, false, false, false, false]);
+  // const [statOn, setStatOn] = useState([true, false, true, true, false, false, false, false]);
+  const [statOn, setStatOn] = useState([true, true, true, true, true, true, true, true]);
   const [numQs, setNumQs] = useState(4);
   const [lastAction, setLastAction] = useState(null);
 
@@ -590,6 +592,11 @@ export default function App() {
   return (
     <div className='topLevel'>
       <Schedule games={games} date={date} changeDate={changeDate} changeGame={changeGame}></Schedule>
+      <Score
+        homeTeam={box?.homeTeam?.teamTricode}
+        awayTeam={box?.awayTeam?.teamTricode}
+        score={scoreTimeline[scoreTimeline.length - 1]}
+      ></Score>
       <div className='playByPlaySection' ref = {playByPlaySectionRef}>
         <Play
           awayTeamNames={awayTeamName}
