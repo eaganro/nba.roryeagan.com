@@ -55,7 +55,6 @@ wss.on('connection', function connection(ws) {
 });
 
 myEmitter.on('update', ({gameId, type, data}) => {
-  console.log(gameId);
   onDataUpdate(gameId, type, data);
 });
 
@@ -67,13 +66,14 @@ const onDataUpdate = async (gameId, type, data) => {
     try {
       // const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
       subscribers.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === 1) {
+          console.log('asdf');
           client.send(JSON.stringify({ type, data }));
         }
       });
     } catch (error) {
       console.error('Error reading file:', error);
-      ws.send(JSON.stringify({ error: 'Failed to read data' }));
+      // ws.send(JSON.stringify({ error: 'Failed to read data' }));
     }
   }
   console.log('here')

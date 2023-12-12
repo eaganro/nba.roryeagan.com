@@ -9,7 +9,7 @@ import StatButtons from '../StatButtons/StatButtons';
 import './App.scss';
 export default function App() {
 
-  const [date, setDate] = useState("2023-12-07");
+  const [date, setDate] = useState("2023-12-11");
   const [games, setGames] = useState([]);
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
@@ -50,21 +50,39 @@ export default function App() {
     };
 
     newWs.onmessage = (event) => {
-      // console.log('Message from server ', event.data);
-      const { play, box } = JSON.parse(event.data);
-
-      setBox(box);
-      setAwayTeamId(box.awayTeamId ? box.awayTeamId : box.awayTeam.teamId);
-      setHomeTeamId(box.homeTeamId ? box.homeTeamId : box.homeTeam.teamId);
-
-      if (play[play.length - 1] && play[play.length - 1].period > 4) {
-        setNumQs(play[play.length - 1].period);
+      const data = JSON.parse(event.data);
+      if(data.type === 'playByPlayData') {
+        const play = JSON.parse(data.data);
+        if (play[play.length - 1] && play[play.length - 1].period > 4) {
+          setNumQs(play[play.length - 1].period);
+        } else {
+          setNumQs(4);
+        }
+        setLastAction(play[play.length - 1])
+        setPlayByPlay(play);
+        setPlayByPlay(play);
+      } else if (data.type === 'boxData') {
+        const box = JSON.parse(data.data);
+        setBox(box);
+        setAwayTeamId(box.awayTeamId ? box.awayTeamId : box.awayTeam.teamId);
+        setHomeTeamId(box.homeTeamId ? box.homeTeamId : box.homeTeam.teamId);
       } else {
-        setNumQs(4);
+        // console.log('Message from server ', event.data);
+        const { play, box } = data;
+
+        setBox(box);
+        setAwayTeamId(box.awayTeamId ? box.awayTeamId : box.awayTeam.teamId);
+        setHomeTeamId(box.homeTeamId ? box.homeTeamId : box.homeTeam.teamId);
+
+        if (play[play.length - 1] && play[play.length - 1].period > 4) {
+          setNumQs(play[play.length - 1].period);
+        } else {
+          setNumQs(4);
+        }
+        setLastAction(play[play.length - 1])
+        setPlayByPlay(play);
+        setPlayByPlay(play);
       }
-      setLastAction(play[play.length - 1])
-      setPlayByPlay(play);
-      setPlayByPlay(play);
     };
 
     newWs.onclose = () => {
