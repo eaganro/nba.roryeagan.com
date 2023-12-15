@@ -2,6 +2,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 import fs from 'fs/promises';
+import myEmitter from './eventEmitter.js';
 
 const pool = new Pool({
   user: 'test',
@@ -16,34 +17,98 @@ const pool = new Pool({
 //   pool.end();
 // });
 
-(async () => {
-  const files = await fs.readdir('public/data/boxData');
-  files.forEach(async file => {
-    const box = JSON.parse(await fs.readFile(`public/data/boxData/${file}`, 'utf8'));
+export async function databaseGetDate(date) {
+  const query = `SELECT * FROM games WHERE date='${date}'`;
+  try {
+    let data = await pool.query(query);
+    // console.log(data);
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export async function databaseInsertGame(box) {
+
+}
+
+export default {
+  getDate: async function(date) {
+    const query = `SELECT * FROM games WHERE date='${date}'`;
+    try {
+      let data = await pool.query(query);
+      // console.log(data);
+      return data;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  insertGame: async function databaseInsertGame(box) {
     const id = box.gameId;
     const homeScore = box.homeTeam.score;
     const awayScore = box.awayTeam.score;
+    const homeTeam = box.homeTeam.teamTricode;
+    const awayTeam = box.awayTeam.teamTricode;
     const startTime = box.gameTimeUTC;
     const clock = box.gameClock;
     const status = box.gameStatusText;
     const date = new Date(box.gameEt);
     const dateDB = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-    const query = `INSERT INTO games (id, homeScore, awayScore, startTime, clock, status, date)
-      VALUES ('${id}', ${homeScore}, ${awayScore}, '${startTime}', '${clock}', '${status}', '${dateDB}')
+    const query = `INSERT INTO games (id, homeScore, awayScore, homeTeam, awayTeam, startTime, clock, status, date)
+      VALUES ('${id}', ${homeScore}, ${awayScore}, '${homeTeam}', '${awayTeam}', '${startTime}', '${clock}', '${status}', '${dateDB}')
       ON CONFLICT (id) 
       DO UPDATE SET 
       homeScore = EXCLUDED.homeScore,
       awayScore = EXCLUDED.awayScore,
+      homeTeam = EXCLUDED.homeTeam,
+      awayTeam = EXCLUDED.awayTeam,
       startTime = EXCLUDED.startTime,
       clock = EXCLUDED.clock,
+      date = EXCLUDED.date,
       status = EXCLUDED.status;`;
-      console.log(query)
-    pool.query(query, (err, res) => {
-      if (err) {
-        console.log(err);
-      } else{
-        console.log('insert');
-      }
-    });
-  });
-})();
+      console.log(query);
+    try{
+      console.log(await pool.query(query));
+      myEmitter.emit('scheduleUpdate', { date: dateDB, type: 'date' });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+};
+
+// (async () => {
+//   const files = await fs.readdir('public/data/boxData');
+//   files.forEach(async file => {
+//     const box = JSON.parse(await fs.readFile(`public/data/boxData/${file}`, 'utf8'));
+//     const id = box.gameId;
+//     const homeScore = box.homeTeam.score;
+//     const awayScore = box.awayTeam.score;
+//     const homeTeam = box.homeTeam.teamTricode;
+//     const awayTeam = box.awayTeam.teamTricode;
+//     const startTime = box.gameTimeUTC;
+//     const clock = box.gameClock;
+//     const status = box.gameStatusText;
+//     const date = new Date(box.gameEt);
+//     const dateDB = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+//     const query = `INSERT INTO games (id, homeScore, awayScore, homeTeam, awayTeam, startTime, clock, status, date)
+//       VALUES ('${id}', ${homeScore}, ${awayScore}, '${homeTeam}', '${awayTeam}', '${startTime}', '${clock}', '${status}', '${dateDB}')
+//       ON CONFLICT (id) 
+//       DO UPDATE SET 
+//       homeScore = EXCLUDED.homeScore,
+//       awayScore = EXCLUDED.awayScore,
+//       homeTeam = EXCLUDED.homeTeam,
+//       awayTeam = EXCLUDED.awayTeam,
+//       startTime = EXCLUDED.startTime,
+//       clock = EXCLUDED.clock,
+//       date = EXCLUDED.date,
+//       status = EXCLUDED.status;`;
+//       console.log(query)
+//     pool.query(query, (err, res) => {
+//       if (err) {
+//         console.log(err);
+//       } else{
+//         console.log('insert');
+//       }
+//     });
+//   });
+// })();

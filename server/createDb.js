@@ -20,6 +20,7 @@ client.connect(err => {
 // const createDatabaseQuery = ['DROP DATABASE IF EXISTS games;', 'CREATE DATABASE nbavis'];
 const createDatabaseQuery = ['DROP TABLE IF EXISTS games;', 'CREATE TABLE games(id VARCHAR PRIMARY KEY)',
 'ALTER TABLE games ADD COLUMN homeScore INTEGER', 'ALTER TABLE games ADD COLUMN awayScore INTEGER',
+'ALTER TABLE games ADD COLUMN homeTeam VARCHAR', 'ALTER TABLE games ADD COLUMN awayTeam VARCHAR',
 'ALTER TABLE games ADD COLUMN startTime VARCHAR', 'ALTER TABLE games ADD COLUMN clock VARCHAR',
 'ALTER TABLE games ADD COLUMN status VARCHAR', 'ALTER TABLE games ADD COLUMN date DATE'];
 

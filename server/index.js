@@ -6,6 +6,8 @@ import fs from 'fs/promises';
 import schedule from './public/data/schedule/schedule.json' assert { type: 'json' };
 import myEmitter from './eventEmitter.js';
 
+import database from './database.js';
+
 
 const app = express();
 const server = http.createServer(app);
@@ -14,6 +16,7 @@ const port = 3000;
 
 
 const gameSubscriptions = {};
+const dateSubscriptions = {};
 
 wss.on('connection', function connection(ws) {
   ws.on('message', async (message) => {
@@ -41,6 +44,26 @@ wss.on('connection', function connection(ws) {
         console.error('Error reading file:', error);
         ws.send(JSON.stringify({ error: 'Failed to read data' }));
       }
+    } else if (data.type = 'date') {
+      const date = data.date;
+      if (ws.date && dateSubscriptions[ws.date]) {
+        dateSubscriptions[ws.date].delete(ws);
+      }
+
+      ws.date = date;
+      if (!dateSubscriptions[date]) {
+        dateSubscriptions[date] = new Set();
+      }
+      dateSubscriptions[date].add(ws);
+
+      try {
+        const dateData = await database.getDate(date)
+        console.log(dateData.rows);
+        ws.send(JSON.stringify({ type: 'date', data: dateData.rows }));
+      } catch (error) {
+        console.error('Error reading file:', error);
+        ws.send(JSON.stringify({ error: 'Failed to read data' }));
+      }
     }
     console.log('received: %s', message);
   });
@@ -57,6 +80,24 @@ wss.on('connection', function connection(ws) {
 myEmitter.on('update', ({gameId, type, data}) => {
   onDataUpdate(gameId, type, data);
 });
+myEmitter.on('scheduleUpdate', async ({date, type}) => {
+  if (type === 'date'){
+    const data = await database.getDate(date);
+    const subscribers = gameSubscriptions[gameId];
+    if (subscribers) {
+      try {
+        subscribers.forEach((client) => {
+          if (client.readyState === 1) {
+            client.send(JSON.stringify({ type, data }));
+          }
+        });
+      } catch (error) {
+        console.error('Error reading file:', error);
+        ws.send(JSON.stringify({ error: 'Failed to read data' }));
+      }
+    }
+  }
+});
 
 const onDataUpdate = async (gameId, type, data) => {
   console.log(gameId, type)
@@ -67,7 +108,6 @@ const onDataUpdate = async (gameId, type, data) => {
       // const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
       subscribers.forEach((client) => {
         if (client.readyState === 1) {
-          console.log('asdf');
           client.send(JSON.stringify({ type, data }));
         }
       });
@@ -76,7 +116,6 @@ const onDataUpdate = async (gameId, type, data) => {
       // ws.send(JSON.stringify({ error: 'Failed to read data' }));
     }
   }
-  console.log('here')
 };
 
 const emitEvent = function(i) {

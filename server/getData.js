@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import * as fs from 'fs';
 import puppeteer from 'puppeteer';
 import myEmitter from './eventEmitter.js';
+import database from './database.js';
 
 import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json' };
 // import testGame from './public/data/playByPlayData/0022300111.json' assert { type: 'json' };
@@ -51,6 +52,7 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
       // executablePath: '/usr/bin/chromium',
       headless: true
     });
+    let pages = [];
     gameUrls.forEach(async (game) => {
       let gameId = game.url.slice(-10);
       let startTime = game.startTime;
@@ -61,9 +63,9 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
         let lastActionIndex = -1;
         console.log('1', gameId)
         let firstTime = true;
+        pages.push(page);
         page.on('response', async (response) => {
           if (response.url().includes('playbyplay')) {
-            console.log('play', gameId);
             try {
               const actions = (await response.json())?.game?.actions;
               fs.writeFileSync(`public/data/playByPlayData/${gameId}.json`, JSON.stringify(actions), 'utf8');
@@ -85,9 +87,9 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
           }
           if (response.url().includes('boxscore')) {
             if (response.ok()) {
-              console.log('box', gameId)
               const box = (await response.json())?.game;
               fs.writeFileSync(`public/data/boxData/${gameId}.json`, JSON.stringify(box), 'utf8');
+              database.insertGame(box);
               myEmitter.emit('update', { gameId, type: 'boxData', data: JSON.stringify(box) });
             }
           }
@@ -101,5 +103,8 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
       // });
       
     });
+    setInterval(() => {
+      pages.forEach(p => console.log(p.isClosed()));
+    }, 10000);
   })();
 // });
