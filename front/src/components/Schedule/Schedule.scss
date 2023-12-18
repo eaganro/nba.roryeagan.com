@@ -23,15 +23,23 @@
 .games {
   display: flex;
   margin-left: 10px;
-  overflow-x: scroll;
+  overflow-x: hidden;
   text-align: center;
+  width: calc(0.7 * calc(100% - 100px));
 
   .game {
+    border: 1px solid black;
+    border-radius: 5px;
     margin-right: 20px;
 
     white-space: nowrap;
     &:hover {
       cursor: pointer;
+    }
+
+    .iconRow {
+      display: flex;
+      align-items: center;
     }
   }
 }

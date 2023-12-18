@@ -1,6 +1,10 @@
+import { useRef } from 'react';
+
 import './Schedule.scss';
 
 export default function Schedule({ games, date, changeDate, changeGame }) {
+
+  const scrollRef = useRef(null);
 
   console.log(games);
   const gamesList = games.sort((a,b) => {
@@ -36,21 +40,86 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
       }
     }
   }).map(g => {
-    return (
-      <div className='game' key={g.id} onClick={() => changeGame(g.id)}>
-        <div>{g.awayteam} - {g.hometeam}</div>
-        <div>{g.status.endsWith('ET') ? '--' : g.awayscore} - {g.status.endsWith('ET') ? '--' : g.homescore}</div>
-        <div>{g.status}</div>
-      </div>
-    )
+    if (!g.status.endsWith('ET')) {
+      return (
+        <div className='game' key={g.id} onClick={() => changeGame(g.id)}>
+          <div class="iconRow">
+            <img height="16" width="16" src={`img/teams/${g.awayteam}.png`}></img>
+            {g.awayteam} - {g.hometeam}
+            <img height="16" width="16" src={`img/teams/${g.hometeam}.png`}></img>
+          </div>
+          <div>{g.awayscore} - {g.homescore}</div>
+          <div>{g.status}</div>
+        </div>
+      )
+    } else {
+      return (
+        <div className='game' key={g.id} onClick={() => changeGame(g.id)}>
+          <div class="iconRow">
+            <img height="16" width="16" src={`img/teams/${g.awayteam}.png`}></img>
+            {g.awayteam} - {g.hometeam}
+            <img height="16" width="16" src={`img/teams/${g.hometeam}.png`}></img>
+          </div>
+          <div>{g.status}</div>
+        </div>
+      )
+    }
+
   });
+  const scrollScheduleRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft += 100;
+    }
+  }
+  const scrollScheduleLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft -= 100;
+    }
+  }
+
+  const dateDown = () => {
+    const downdate = new Date(date);
+    downdate.setDate(downdate.getDate());
+    let month = downdate.getMonth() + 1;
+    if (month < 10) {
+      month = '0' + month;
+    }
+    let day = downdate.getDate();
+    if (day < 10) {
+      day = '0' + day;
+    }
+    let val = `${downdate.getFullYear()}-${month}-${day}`
+    changeDate({ target: { value: val }})
+  }
+  const dateUp = () => {
+    const update = new Date(date);
+    update.setDate(update.getDate() + 2);
+    let month = update.getMonth() + 1;
+    if (month < 10) {
+      month = '0' + month;
+    }
+    let day = update.getDate();
+    if (day < 10) {
+      day = '0' + day;
+    }
+    let val = `${update.getFullYear()}-${month}-${day}`
+    changeDate({ target: { value: val }})
+  }
+
+  const here = (x,y,z) => {
+    console.log(x,y,z);
+  }
 
   return (
     <div className='schedule'>
-      <input className='dateInput' type="date" value={date} onChange={changeDate}></input>
-      <div className="games">
+      <button onClick={dateDown}>{'<'}</button>
+      <input className='dateInput' type="date" value={date} onChange={(e) => changeDate(e)}></input>
+      <button onClick={dateUp}>{'>'}</button>
+      <button onClick={scrollScheduleLeft}>{'<'}</button>
+      <div className="games" ref={scrollRef}>
         {gamesList}
       </div>
+      <button onClick={scrollScheduleRight}>{'>'}</button>
     </div>
   );
 }
