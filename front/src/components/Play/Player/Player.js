@@ -54,13 +54,27 @@ export default function Player({ actions, timeline, name, width, numQs, heightDi
       style.top = '7.5px';
       style.left = `${pos - 2.5}px`;
     }
-    return (
-      highlight.includes(a.actionNumber) ?
-      <circle key={a.actionNumber} fill={color} cx={pos} cy={"12"} r={"6"} />
-      :
-      <circle key={a.actionNumber} fill={color} cx={pos} cy={"12"} r={"3"} />
-      // <div key={a.actionId} className="dot" style={style}></div>
-    );
+    if (highlight.includes(a.actionNumber)) {
+      if (a.description.includes('3PT')) {
+        return (
+          <g>
+            <circle key={a.actionNumber} fill={color} cx={pos} cy={"12"} r={"6"} />
+            <circle key={a.actionNumber + '3PT'} fill={'red'} cx={pos} cy={"12"} r={"3"} />
+          </g>
+        );
+      }
+      return <circle key={a.actionNumber} fill={color} cx={pos} cy={"12"} r={"6"} />;
+    } else {
+      if (a.description.includes('3PT')) {
+        return (
+          <g>
+            <circle key={a.actionNumber} fill={color} cx={pos} cy={"12"} r={"3"} />
+            <circle key={a.actionNumber + '3PT'} fill={'red'} cx={pos} cy={"12"} r={"1.5"} />
+          </g>
+        );
+      }
+      return <circle key={a.actionNumber} fill={color} cx={pos} cy={"12"} r={"3"} />;
+    }
   });
 
   const playTimeLines = timeline?.filter(t => {
