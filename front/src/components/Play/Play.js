@@ -293,7 +293,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
   let homeColor = homeTeamNames.abr ? rgbToRgba(teamColor[homeTeamNames.abr], 0.3) : '';
   return (
     <div onMouseMove={mouseOver} onMouseOut={mouseOut} className='play' style={{ width: width + leftMargin }}>
-      <div className="descriptionArea">{descriptionList}</div>
+      {/* <div className="descriptionArea">{descriptionList}</div> */}
       <svg height="600" width={width + leftMargin} className='line'>
         {timeline}
         <polyline points={pospoints.join(' ')} style={{"fill": awayColor}}/>

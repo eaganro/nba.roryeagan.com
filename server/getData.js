@@ -9,7 +9,16 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
 // import testGame from './public/data/playByPlayData/0022300111.json' assert { type: 'json' };
 // schedule.scheduleJob('0 8 * * *', () => {
   const today = new Date();
-  const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() >= 10 ? today.getDate() : '0' + today.getDate()}`
+  let month = today.getMonth() + 1;
+  if (month < 10) {
+    month = '0' + month;
+  }
+  let day = today.getDate();
+  if (day < 10) {
+    day = '0' + day;
+  }
+  const todayString = `${today.getFullYear()}-${month}-${day}`
+  // const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() >= 10 ? today.getDate() : '0' + today.getDate()}`
   console.log(todayString);
 
 
@@ -39,31 +48,66 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
     console.log(gameUrls);
     // const browser = await puppeteer.launch({headless: true});
     const browser = await puppeteer.launch({
+      // args: [
+      //   '--no-sandbox',
+      //   '--disable-setuid-sandbox',
+      //   '--disable-dev-shm-usage',
+      //   '--disable-accelerated-2d-canvas',
+      //   '--no-first-run',
+      //   '--no-zygote',
+      //   '--single-process',
+      //   '--disable-gpu'
+      // ],
+      // // executablePath: '/usr/bin/chromium',
       args: [
+        '--headless',
         '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
+        '--disable-background-networking',
+        '--disable-default-apps',
+        '--disable-extensions',
+        '--disable-sync',
+        '--disable-translate',
+        '--hide-scrollbars',
+        '--metrics-recording-only',
+        '--mute-audio',
         '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
+        '--safebrowsing-disable-auto-update',
+        '--ignore-certificate-errors',
+        '--ignore-ssl-errors',
+        '--ignore-certificate-errors-spki-list',
+        '--user-data-dir=/tmp',
+        '--remote-debugging-port=9222',
+        '--remote-debugging-address=0.0.0.0',
+        '--window-size=1920,1080',
       ],
-      // executablePath: '/usr/bin/chromium',
-      headless: true
+      // headless: false
     });
-    let pages = [];
+    // let pages = [];
     gameUrls.forEach(async (game) => {
       let gameId = game.url.slice(-10);
+      if (gameId !== '0022300779') {
+        console.log(gameId);
+        return;
+      }
       let startTime = game.startTime;
       let fourHoursLater = new Date(startTime.getTime() + 4 * 60 * 60 * 1000);
       // schedule.scheduleJob((new Date), async () => {
         const page = await browser.newPage();
         await page.setDefaultNavigationTimeout(0);
+        await page.setRequestInterception(true);
         let lastActionIndex = -1;
         console.log('1', gameId)
         let firstTime = true;
-        pages.push(page);
+        // pages.push(page);
+
+        page.on('request', (req) => {
+          if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'){
+            req.abort();
+          }
+          else {
+              req.continue();
+          }
+        });
         page.on('response', async (response) => {
           if (response.url().includes('playbyplay')) {
             try {
@@ -103,8 +147,8 @@ import gamesObj from './public/data/schedule/schedule.json' assert { type: 'json
       // });
       
     });
-    setInterval(() => {
-      pages.forEach(p => console.log(p.isClosed()));
-    }, 10000);
+    // setInterval(() => {
+    //   pages.forEach(p => console.log(p.isClosed()));
+    // }, 10000);
   })();
 // });

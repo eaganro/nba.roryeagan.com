@@ -30,7 +30,7 @@ const getPage = async function(i) {
     boxStat = await fsp.stat(`public/data/boxData/${gameIdNums}.json`);
     playStat = await fsp.stat(`public/data/playByPlayData/${gameIdNums}.json`);
     let box = JSON.parse(await fsp.readFile(`public/data/boxData/${gameIdNums}.json`));
-    if (box.gameStatusText !== 'Final') {
+    if (!box.gameStatusText.startsWith('Final')) {
       fetchFunc(gameId, i);
     } else {
       getPage(i + 1);
@@ -59,15 +59,15 @@ const fetchFunc = function(gameId, i) {
         const box = obj.props.pageProps.game;
         database.insertGame(box);
         makeFile(playByPlay, box, gameId.slice(-10));
-        setTimeout(() => {
-          getPage(i + 1);
-        }, Math.random() * 0)
+        // setTimeout(() => {
+        //   getPage(i + 1);
+        // }, Math.random() * 0)
       }
     });
 }
 
 const makeFile = function(playByPlay, box, gameId) {
-  if (playByPlay.length) {
+  // if (playByPlay.length) {
     fs.writeFile(`public/data/playByPlayData/${gameId}.json`, JSON.stringify(playByPlay), function (err) {
       if (err) throw err;
       console.log('Saved!');
@@ -76,7 +76,7 @@ const makeFile = function(playByPlay, box, gameId) {
       if (err) throw err;
       console.log('Saved!');
     });
-  }
+  // }
 }
 
 // requestList.forEach((v, i) => {
@@ -84,4 +84,24 @@ const makeFile = function(playByPlay, box, gameId) {
 //   setTimeout(() => {}, 200);
 // });
 
-getPage(0);
+// getPage(0);
+
+requestList.forEach(async (r, i) =>{
+  const gameId = r[0];
+  const gameIdNums = gameId.slice(-10);
+  console.log(`${i} - ${gameId}`);
+
+  let boxStat, playStat;
+  try {
+    boxStat = await fsp.stat(`public/data/boxData/${gameIdNums}.json`);
+    playStat = await fsp.stat(`public/data/playByPlayData/${gameIdNums}.json`);
+    let box = JSON.parse(await fsp.readFile(`public/data/boxData/${gameIdNums}.json`));
+    if (!box.gameStatusText.startsWith('Final')) {
+      fetchFunc(gameId, i);
+    } else {
+      // getPage(i + 1);
+    }
+  } catch (error) {
+    fetchFunc(gameId, i);
+  }
+});

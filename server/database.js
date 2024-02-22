@@ -69,24 +69,24 @@ let databaseInsertGame = async function(box) {
   }
 }
 
-const populateFromSchedule = function() {
-  Object.keys(gamesObj).forEach(k => {
-    gamesObj[k].forEach(async g => {
-      const query = `SELECT * FROM games WHERE id='${g.slice(-10)}'`;
-      let gameExists = (await pool.query(query)).rows[0];
-      if (!gameExists || (!gameExists.status.startsWith('Final') && !gameExists.status.endsWith('ET'))) {
-        console.log(query);
-        const $ = cheerio.load(await (await fetch(`https://www.nba.com/game/${g}`)).text());
-        const obj = JSON.parse($('#__NEXT_DATA__').html());
-        let box = obj.props.pageProps.game;
-        if (box) {
-          databaseInsertGame(box);
-        }
-      }
-    });
-  });
-}
-populateFromSchedule();
+// const populateFromSchedule = function() {
+//   Object.keys(gamesObj).forEach(k => {
+//     gamesObj[k].forEach(async g => {
+//       const query = `SELECT * FROM games WHERE id='${g.slice(-10)}'`;
+//       let gameExists = (await pool.query(query)).rows[0];
+//       if (!gameExists || (!gameExists.status.startsWith('Final') && !gameExists.status.endsWith('ET'))) {
+//         console.log(query);
+//         const $ = cheerio.load(await (await fetch(`https://www.nba.com/game/${g}`)).text());
+//         const obj = JSON.parse($('#__NEXT_DATA__').html());
+//         let box = obj.props.pageProps.game;
+//         if (box) {
+//           databaseInsertGame(box);
+//         }
+//       }
+//     });
+//   });
+// }
+// populateFromSchedule();
 
 export default {
   getDate: async function(date) {
