@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { timeToSeconds, sortActions, filterActions, addAssistActions, processScoreTimeline, fixPlayerName } from '../../utils';
+import { fixPlayerName } from '../../utils';
+import { sortActions, filterActions, processScoreTimeline, createPlayers,
+  createPlaytimes, updatePlaytimesWithAction, quarterChange, endPlaytimes } from '../../dataProcessing';
 
 import Schedule from '../Schedule/Schedule';
 import Score from '../Score/Score';
@@ -171,264 +173,26 @@ export default function App() {
     }
     setScoreTimeline(processScoreTimeline(data));
 
-    let awayPlayers = {};
-    let homePlayers = {};
-
-    data.forEach(a => {
-
-      let playerName = fixPlayerName(a);
-
-      if (playerName) {
-        if(a.teamId === awayTeamId) {
-          if (!awayPlayers[playerName]) {
-            awayPlayers[playerName] = [a];
-          } else {
-            awayPlayers[playerName].push(a);
-          }
-          if (a.description.includes('AST')) {
-            addAssistActions(a, awayPlayers);
-          }
-        } else if(a.teamId === homeTeamId) {
-          if (!homePlayers[playerName]) {
-            homePlayers[playerName] = [a];
-          } else {
-            homePlayers[playerName].push(a);
-          }
-          if (a.description.includes('AST')) {
-            addAssistActions(a, homePlayers);
-          }
-        }
-      }
-    });
-
-    const awayPlaytimes = {};
-    Object.keys(awayPlayers).forEach(player => {
-      awayPlaytimes[player] = {
-        times: [],
-        on: false,
-      };
-    });
-    const homePlaytimes = {};
-    Object.keys(homePlayers).forEach(player => {
-      homePlaytimes[player] = {
-        times: [],
-        on: false,
-      };
-    });
+    let { awayPlayers, homePlayers } = createPlayers(data, awayTeamId, homeTeamId);
+    let awayPlaytimes = createPlaytimes(awayPlayers);
+    let homePlaytimes = createPlaytimes(homePlayers);
 
     let currentQ = 1;
     data.forEach(a => {
-
-      let playerName = fixPlayerName(a);
-
+      if(a.period !== currentQ) {
+        awayPlaytimes = quarterChange(awayPlaytimes);
+        homePlaytimes = quarterChange(homePlaytimes);
+        currentQ = a.period;
+      }
       if(a.teamId === awayTeamId) {
-        if(a.period !== currentQ) {
-          Object.keys(awayPlaytimes).forEach(player => {
-            if(awayPlaytimes[player].on === true) {
-              let t = awayPlaytimes[player].times;
-              t[t.length - 1].end = "PT00M00.00S";
-              awayPlaytimes[player].on = false;
-            }
-          });
-          Object.keys(homePlaytimes).forEach(player => {
-            if(homePlaytimes[player].on === true) {
-              let t = homePlaytimes[player].times;
-              t[t.length - 1].end = "PT00M00.00S";
-              homePlaytimes[player].on = false;
-            }
-          });
-          currentQ = a.period;
-        }
-        if (a.actionType === 'Substitution') {
-          let startName = a.description.indexOf('SUB:') + 5;
-          let endName = a.description.indexOf('FOR') - 1;
-          // if (a.actionType === 'substitution') {
-          //   startName = a.description.indexOf(':') + 2;
-          //   endName = a.description.length;
-          // }
-          let name = a.description.slice(startName, endName);
-          if (name === 'Porter' && a.teamTricode === 'CLE') {
-            name = "Porter Jr."
-          }
-          // if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
-          //   name = name.split(' ')[1];
-          // }
-          if(awayPlaytimes[name]) {
-            awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
-            awayPlaytimes[name].on = true;
-          } else {
-            awayPlaytimes[name] = {
-              times: [],
-              on: false,
-            };
-            awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
-            awayPlaytimes[name].on = true;
-            awayPlayers[name] = [];
-            console.log('PROBLEM: Player Name Not Found', name);
-          }
-          
-          let t = awayPlaytimes[playerName].times;
-          if (awayPlaytimes[playerName].on === false) {
-            if (a.period <= 4) {
-              t.push({ start: "PT12M00.00S", period: a.period });
-            } else {
-              t.push({ start: "PT05M00.00S", period: a.period });
-            }
-          }
-          t[t.length - 1].end = a.clock;
-          awayPlaytimes[playerName].on = false;
-        } else if (a.actionType === 'substitution') {
-          let name = a.description.slice(a.description.indexOf(':') + 2);
-          let t = awayPlaytimes[name].times;
-          if (a.description.includes('out:')) {
-            if (awayPlaytimes[name].on === false) {
-              if (a.period <= 4) {
-                t.push({ start: "PT12M00.00S", period: a.period });
-              } else {
-                t.push({ start: "PT05M00.00S", period: a.period });
-              }
-            }
-            t[t.length - 1].end = a.clock;
-            awayPlaytimes[name].on = false;
-          } else if (a.description.includes('in:')) {
-            if(awayPlaytimes[name]) {
-              awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
-              awayPlaytimes[name].on = true;
-            } else {
-              awayPlaytimes[name] = {
-                times: [],
-                on: false,
-              };
-              awayPlaytimes[name].times.push({ start: a.clock, period: a.period });
-              awayPlaytimes[name].on = true;
-              awayPlayers[name] = [];
-              console.log('PROBLEM: Player Name Not Found', name);
-            }
-          }
-        } else {
-          if (playerName && awayPlaytimes[playerName].on === false) {
-            awayPlaytimes[playerName].on = true;
-            awayPlaytimes[playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });     
-          } else if(playerName && awayPlaytimes[playerName].on === true) {
-            let t = awayPlaytimes[playerName].times;
-            t[t.length - 1].end = a.clock;
-          }
-        }
+        awayPlaytimes = updatePlaytimesWithAction(a, awayPlaytimes);
       }
-
-
-
-
-
       if(a.teamId === homeTeamId) {
-        if(a.period !== currentQ) {
-          Object.keys(homePlaytimes).forEach(player => {
-            if(homePlaytimes[player].on === true) {
-              let t = homePlaytimes[player].times;
-              t[t.length - 1].end = "PT00M00.00S";
-              homePlaytimes[player].on = false;
-            }
-          });
-          Object.keys(awayPlaytimes).forEach(player => {
-            if(awayPlaytimes[player].on === true) {
-              let t = awayPlaytimes[player].times;
-              t[t.length - 1].end = "PT00M00.00S";
-              awayPlaytimes[player].on = false;
-            }
-          });
-          currentQ = a.period;
-        }
-        if (a.actionType === 'Substitution') {
-          let startName = a.description.indexOf('SUB:') + 5;
-          let endName = a.description.indexOf('FOR') - 1;
-          let name = a.description.slice(startName, endName);
-          if (name === 'Porter' && a.teamTricode === 'CLE') {
-            name = "Porter Jr."
-          }
-          // if (name.includes(' ') && name.split(' ')[1] !== 'Jr.' && name.split(' ')[1].length > 3) {
-          //   name = name.split(' ')[1];
-          // }
-          if(homePlaytimes[name]) {
-            homePlaytimes[name].times.push({ start: a.clock, period: a.period });
-            homePlaytimes[name].on = true;
-          } else {
-            homePlaytimes[name] = {
-              times: [],
-              on: false,
-            };
-            homePlaytimes[name].times.push({ start: a.clock, period: a.period });
-            homePlaytimes[name].on = true;
-            homePlayers[name] = [];
-            console.log('PROBLEM: Player Name Not Found', name, homePlaytimes);
-          }
-
-          let t = homePlaytimes[playerName].times;
-          if (homePlaytimes[playerName].on === false) {
-            if (a.period <= 4) {
-              t.push({ start: "PT12M00.00S", period: a.period });
-            } else {
-              t.push({ start: "PT05M00.00S", period: a.period });
-            }
-          }
-          t[t.length - 1].end = a.clock;
-          homePlaytimes[playerName].on = false;
-        } else if (a.actionType === 'substitution') {
-          let name = a.description.slice(a.description.indexOf(':') + 2);
-          if (a.description.includes('out:')) {
-            let t =  homePlaytimes[name].times;
-            if (homePlaytimes[name].on === false) {
-              if (a.period <= 4) {
-                t.push({ start: "PT12M00.00S", period: a.period });
-              } else {
-                t.push({ start: "PT05M00.00S", period: a.period });
-              }
-            }
-            t[t.length - 1].end = a.clock;
-            homePlaytimes[name].on = false;
-          } else if (a.description.includes('in:')) {
-            if(homePlaytimes[name]) {
-              homePlaytimes[name].times.push({ start: a.clock, period: a.period });
-              homePlaytimes[name].on = true;
-            } else {
-              homePlaytimes[name] = {
-                times: [],
-                on: false,
-              };
-              homePlaytimes[name].times.push({ start: a.clock, period: a.period });
-              homePlaytimes[name].on = true;
-              homePlayers[name] = [];
-              console.log('PROBLEM: Player Name Not Found', name);
-            }
-          }
-        } else {
-          if (playerName && homePlaytimes[playerName].on === false) {
-            homePlaytimes[playerName].on = true;
-            if (a.period <= 4) {
-              homePlaytimes[playerName].times.push({ start: "PT12M00.00S", period: a.period, end: a.clock });
-            } else {
-              homePlaytimes[playerName].times.push({ start: "PT05M00.00S", period: a.period, end: a.clock });
-            }
-          } else if(playerName && homePlaytimes[playerName].on === true) {
-            let t = homePlaytimes[playerName].times;
-            t[t.length - 1].end = a.clock;
-          }
-        }
+        homePlaytimes = updatePlaytimesWithAction(a, homePlaytimes);
       }
     });
-    Object.keys(homePlaytimes).forEach(player => {
-      if(homePlaytimes[player].on === true) {
-        let t = homePlaytimes[player].times;
-        t[t.length - 1].end = lastAction.clock;
-      }
-      homePlaytimes[player] = homePlaytimes[player].times;
-    });
-    Object.keys(awayPlaytimes).forEach(player => {
-      if(awayPlaytimes[player].on === true) {
-        let t = awayPlaytimes[player].times;
-        t[t.length - 1].end = lastAction.clock;
-      }
-      awayPlaytimes[player] = awayPlaytimes[player].times;
-    });
+    homePlaytimes = endPlaytimes(homePlaytimes, lastAction);
+    awayPlaytimes = endPlaytimes(awayPlaytimes, lastAction);
     setAwayPlayerTimeline(awayPlaytimes);
     setHomePlayerTimeline(homePlaytimes);
 
