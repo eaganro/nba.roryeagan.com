@@ -30,7 +30,7 @@
 
   .game {
     // border: 1px solid black;
-    background-color: rgb(234, 235, 237);
+    background-color: rgb(240, 240, 240);
     border-radius: 15px;
     padding: 0 5px;
     margin-right: 20px;
@@ -38,6 +38,7 @@
     white-space: nowrap;
     &:hover {
       cursor: pointer;
+      background-color: rgb(230, 231, 233);
     }
 
     .iconRow {
