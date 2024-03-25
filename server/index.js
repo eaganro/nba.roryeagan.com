@@ -8,6 +8,10 @@ const server = http.createServer(app);
 const port = 3000;
 
 app.use(express.static('./public'));
+app.use((req, res, next) => {
+  req.url = req.url.replace(/\/\//g, '/');
+  next();
+});
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -31,7 +35,11 @@ app.get('/games', async (req, res) => {
   const { date } = req.query;
   try {
     const dateData = await database.getDate(date)
-    res.send(JSON.stringify({ data: dateData.rows }));
+    if (dateData) {
+      res.send(JSON.stringify({ data: dateData.rows }));
+    } else {
+      res.send(JSON.stringify({ data: [] }));
+    }
   } catch (error) {
     console.error('Error reading file:', error);
     res.send(JSON.stringify({ error: 'Failed to read data' }));
