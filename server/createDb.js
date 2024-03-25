@@ -1,15 +1,10 @@
 import pkg from 'pg';
-const { Client } = pkg;
+const { Pool } = pkg;
+import databaseCreds from './databaseCreds.js';
 
-const client = new Client({
-  user: 'test',
-  host: 'localhost',
-  password: 'test',
-  port: 5432,
-  database: 'nbavis'
-});
+const pool = new Pool(databaseCreds);
 
-client.connect(err => {
+pool.connect(err => {
   if (err) {
     console.error('Connection error', err.stack);
   } else {
@@ -18,23 +13,16 @@ client.connect(err => {
 });
 
 // const createDatabaseQuery = ['DROP DATABASE IF EXISTS games;', 'CREATE DATABASE nbavis'];
-const createDatabaseQuery = ['DROP TABLE IF EXISTS games;', 'CREATE TABLE games(id VARCHAR PRIMARY KEY)',
-'ALTER TABLE games ADD COLUMN homeScore INTEGER', 'ALTER TABLE games ADD COLUMN awayScore INTEGER',
-'ALTER TABLE games ADD COLUMN homeTeam VARCHAR', 'ALTER TABLE games ADD COLUMN awayTeam VARCHAR',
-'ALTER TABLE games ADD COLUMN startTime VARCHAR', 'ALTER TABLE games ADD COLUMN clock VARCHAR',
-'ALTER TABLE games ADD COLUMN status VARCHAR', 'ALTER TABLE games ADD COLUMN date DATE'];
+const createDatabaseQuery = ['DROP TABLE IF EXISTS games;', 'CREATE TABLE games(id VARCHAR PRIMARY KEY);',
+'ALTER TABLE games ADD COLUMN homeScore INTEGER;', 'ALTER TABLE games ADD COLUMN awayScore INTEGER;',
+'ALTER TABLE games ADD COLUMN homeTeam VARCHAR;', 'ALTER TABLE games ADD COLUMN awayTeam VARCHAR;',
+'ALTER TABLE games ADD COLUMN startTime VARCHAR;', 'ALTER TABLE games ADD COLUMN clock VARCHAR;',
+'ALTER TABLE games ADD COLUMN status VARCHAR;', 'ALTER TABLE games ADD COLUMN date DATE;'];
 
-createDatabaseQuery.forEach((q, i) =>{
-  client.query(q, (err, res) => {
-    if (err) {
-      console.error('Error executing query', err.stack);
-    } else {
-      console.log('Success');
-    }
-  
-    // Disconnect the client
-    if(i === createDatabaseQuery.length - 1) {
-      client.end();
-    }
-  });
-});
+const nextC = async function(i) {
+  await pool.query(createDatabaseQuery[i]);
+  if (createDatabaseQuery.length > i + 1) {
+    nextC(i + 1);
+  }
+}
+nextC(0);
