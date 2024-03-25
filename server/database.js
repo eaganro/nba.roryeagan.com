@@ -36,6 +36,8 @@ let databaseInsertGame = async function(box) {
   const id = box.gameId;
   const homeScore = box.homeTeam.score;
   const awayScore = box.awayTeam.score;
+  const homeRecord = `${box.homeTeam.teamWins}-${box.homeTeam.teamLosses}`;
+  const awayRecord = `${box.awayTeam.teamWins}-${box.awayTeam.teamLosses}`;
   const homeTeam = box.homeTeam.teamTricode;
   const awayTeam = box.awayTeam.teamTricode;
   const startTime = box.gameTimeUTC;
@@ -43,8 +45,8 @@ let databaseInsertGame = async function(box) {
   const status = box.gameStatusText;
   const date = new Date(box.gameEt);
   const dateDB = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-  const query = `INSERT INTO games (id, homeScore, awayScore, homeTeam, awayTeam, startTime, clock, status, date)
-    VALUES ('${id}', ${homeScore}, ${awayScore}, '${homeTeam}', '${awayTeam}', '${startTime}', '${clock}', '${status}', '${dateDB}')
+  const query = `INSERT INTO games (id, homeScore, awayScore, homeTeam, awayTeam, startTime, clock, status, date, homeRecord, awayRecord)
+    VALUES ('${id}', ${homeScore}, ${awayScore}, '${homeTeam}', '${awayTeam}', '${startTime}', '${clock}', '${status}', '${dateDB}', '${homeRecord}', '${awayRecord}')
     ON CONFLICT (id) 
     DO UPDATE SET 
     homeScore = EXCLUDED.homeScore,
@@ -54,7 +56,9 @@ let databaseInsertGame = async function(box) {
     startTime = EXCLUDED.startTime,
     clock = EXCLUDED.clock,
     date = EXCLUDED.date,
-    status = EXCLUDED.status;`;
+    status = EXCLUDED.status,
+    homeRecord = EXCLUDED.homeRecord,
+    awayRecord = EXCLUDED.awayRecord;`;
     // console.log(query);
   try{
     // console.log(await pool.query(query));
