@@ -104,7 +104,7 @@ export default function App() {
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ type: 'date', date }));
     } else {
-      fetch(`/games?date=${date}`).then(r =>  {
+      fetch(`games?date=${date}`).then(r =>  {
         if (r.status === 404) {
           return [];
         } else {
@@ -121,7 +121,7 @@ export default function App() {
       ws.send(JSON.stringify({ type: 'gameId', gameId }));
     } else {
       console.log('no ws');
-      fetch(`/game?gameId=${gameId}`).then(r =>  {
+      fetch(`game?gameId=${gameId}`).then(r =>  {
         if (r.status === 404) {
           return [];
         } else {
