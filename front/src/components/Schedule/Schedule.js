@@ -95,7 +95,10 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
       day = '0' + day;
     }
     let val = `${downdate.getFullYear()}-${month}-${day}`
-    changeDate({ target: { value: val }})
+    changeDate({ target: { value: val }});
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
   }
   const dateUp = () => {
     const update = new Date(date);
@@ -110,6 +113,9 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
     }
     let val = `${update.getFullYear()}-${month}-${day}`
     changeDate({ target: { value: val }})
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
   }
 
   const here = (x,y,z) => {
