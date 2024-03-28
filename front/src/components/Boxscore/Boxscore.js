@@ -244,24 +244,28 @@ export default function Boxscore({ box }) {
 
   return (
     <div className='box'>
-      <div className="rowGrid teamRow">
-        <div className="team">
-          {box ? <img height="30" width="30" src={`img/teams/${box?.awayTeam?.teamTricode}.png`}></img> : ''}
-          <span>{box?.awayTeam?.teamName}</span>
+      <div className='teamSection'>
+        <div className="rowGrid teamRow">
+          <div className="team">
+            {box ? <img height="30" width="30" src={`img/teams/${box?.awayTeam?.teamTricode}.png`}></img> : ''}
+            <span>{box?.awayTeam?.teamName}</span>
+          </div>
         </div>
+        {statHeadings}
+        {awayBox}
+        {awayTotalRow}
       </div>
-      {statHeadings}
-      {awayBox}
-      {awayTotalRow}
-      <div className="rowGrid teamRow">
-        <div className="team">
-          {box ? <img height="30" width="30" src={`img/teams/${box?.homeTeam?.teamTricode}.png`}></img> : ''}
-          <span>{box?.homeTeam?.teamName}</span>
+      <div className='teamSection'>
+        <div className="rowGrid teamRow">
+          <div className="team">
+            {box ? <img height="30" width="30" src={`img/teams/${box?.homeTeam?.teamTricode}.png`}></img> : ''}
+            <span>{box?.homeTeam?.teamName}</span>
+          </div>
         </div>
+        {statHeadings}
+        {homeBox}
+        {homeTotalRow}
       </div>
-      {statHeadings}
-      {homeBox}
-      {homeTotalRow}
     </div>
   );
 }
