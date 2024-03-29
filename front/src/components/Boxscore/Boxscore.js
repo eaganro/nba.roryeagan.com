@@ -241,6 +241,10 @@ export default function Boxscore({ box }) {
       <span>+/-</span>
     </div>
   );
+  homeBox && homeBox.unshift(statHeadings);
+  homeBox && homeBox.push(homeTotalRow);
+  awayBox && awayBox.unshift(statHeadings);
+  awayBox && awayBox.push(awayTotalRow);
 
   return (
     <div className='box'>
@@ -251,9 +255,7 @@ export default function Boxscore({ box }) {
             <span>{box?.awayTeam?.teamName}</span>
           </div>
         </div>
-        {statHeadings}
         {awayBox}
-        {awayTotalRow}
       </div>
       <div className='teamSection'>
         <div className="rowGrid teamRow">
@@ -262,9 +264,7 @@ export default function Boxscore({ box }) {
             <span>{box?.homeTeam?.teamName}</span>
           </div>
         </div>
-        {statHeadings}
         {homeBox}
-        {homeTotalRow}
       </div>
     </div>
   );
