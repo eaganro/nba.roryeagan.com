@@ -1,4 +1,5 @@
 import './Boxscore.scss';
+import processTeamStats from './processTeamStats';
 export default function Boxscore({ box }) {
   const awayTeamTotals = { fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0,
     freeThrowsMade: 0, freeThrowsAttempted: 0, reboundsOffensive: 0, reboundsDefensive: 0, reboundsTotal: 0,
@@ -55,33 +56,8 @@ export default function Boxscore({ box }) {
       </div>
     )
   });
-  let awayFG;
-  if ((awayTeamTotals.fieldGoalsMade / awayTeamTotals.fieldGoalsAttempted) === 1) {
-    awayFG = 100;
-  } else {
-    awayFG = (Math.round((awayTeamTotals.fieldGoalsMade / awayTeamTotals.fieldGoalsAttempted) * 100 * 10) / 10).toFixed(1)
-  }
-  if (awayFG === 'NaN') {
-    awayFG = 0;
-  }
-  let away3pt;
-  if ((awayTeamTotals.threePointersMade / awayTeamTotals.threePointersAttempted) === 1) {
-    away3pt = 100;
-  } else {
-    away3pt = (Math.round((awayTeamTotals.threePointersMade / awayTeamTotals.threePointersAttempted) * 100 * 10) / 10).toFixed(1)
-  }
-  if (away3pt === 'NaN') {
-    away3pt = 0;
-  }
-  let awayFT;
-  if ((awayTeamTotals.freeThrowsMade / awayTeamTotals.freeThrowsAttempted) === 1) {
-    awayFT = 100;
-  } else {
-    awayFT = (Math.round((awayTeamTotals.freeThrowsMade / awayTeamTotals.freeThrowsAttempted) * 100 * 10) / 10).toFixed(1)
-  }
-  if (awayFT === 'NaN') {
-    awayFT = 0;
-  }
+  
+  const  [awayFG, away3pt, awayFT] = processTeamStats(awayTeamTotals);
   const awayTotalRow = awayBox && (
     <div className={ "rowGrid stat " + (awayBox.length % 2 === 0 ? 'even' : 'odd')}>
       <span className="playerNameCol">TEAM</span>
@@ -163,33 +139,8 @@ export default function Boxscore({ box }) {
       </div>
     )
   });
-  let homeFG;
-  if ((homeTeamTotals.fieldGoalsMade / homeTeamTotals.fieldGoalsAttempted) === 1) {
-    homeFG = 100;
-  } else {
-    homeFG = (Math.round((homeTeamTotals.fieldGoalsMade / homeTeamTotals.fieldGoalsAttempted) * 100 * 10) / 10).toFixed(1)
-  }
-  if (homeFG === 'NaN') {
-    homeFG = 0;
-  }
-  let home3pt;
-  if ((homeTeamTotals.threePointersMade / homeTeamTotals.threePointersAttempted) === 1) {
-    home3pt = 100;
-  } else {
-    home3pt = (Math.round((homeTeamTotals.threePointersMade / homeTeamTotals.threePointersAttempted) * 100 * 10) / 10).toFixed(1)
-  }
-  if (home3pt === 'NaN') {
-    home3pt = 0;
-  }
-  let homeFT;
-  if ((homeTeamTotals.freeThrowsMade / homeTeamTotals.freeThrowsAttempted) === 1) {
-    homeFT = 100;
-  } else {
-    homeFT = (Math.round((homeTeamTotals.freeThrowsMade / homeTeamTotals.freeThrowsAttempted) * 100 * 10) / 10).toFixed(1)
-  }
-  if (homeFT === 'NaN') {
-    homeFT = 0;
-  }
+
+  const  [homeFG, home3pt, homeFT] = processTeamStats(homeTeamTotals);
   const homeTotalRow = homeBox && (
     <div className={ "rowGrid stat " + (homeBox.length % 2 === 0 ? 'even' : 'odd')}>
       <span className="playerNameCol">TEAM</span>
