@@ -1,4 +1,61 @@
-export default function(teamTotals) {
+export default function(team) {
+  if (!team) return ''
+  const teamTotals = { fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0,
+    freeThrowsMade: 0, freeThrowsAttempted: 0, reboundsOffensive: 0, reboundsDefensive: 0, reboundsTotal: 0,
+    assists: 0, steals: 0, blocks: 0, turnovers: 0, foulsPersonal: 0, points: 0, plusMinusPoints:0 };
+  const teamBox = team.players.filter(p => {
+    let minutes = p.statistics.minutes;
+    if (minutes.includes('PT')) {
+      minutes = minutes.slice(2, -4).replace('M', ':');
+    }
+    return minutes !== '00:00';
+  }).sort((a,b) => {
+    let minutesA = a.statistics.minutes;
+    if (minutesA.includes('PT')) {
+      minutesA = minutesA.slice(2, -4).replace('M', ':');
+    }
+    let minutesB = b.statistics.minutes;
+    if (minutesB.includes('PT')) {
+      minutesB = minutesB.slice(2, -4).replace('M', ':');
+    }
+    let [amin, asec] = minutesA.split(':');
+    let [bmin, bsec] = minutesB.split(':');
+    return (bmin * 100 + bsec) - (amin * 100 + asec);
+  }).map((p, i) => {
+    Object.keys(teamTotals).forEach(k => {
+      teamTotals[k] += p.statistics[k];
+    });
+    let minutes = p.statistics.minutes;
+    if (minutes.includes('PT')) {
+      minutes = minutes.slice(2, -4).replace('M', ':');
+    }
+    return (
+      <div key={p.personId} className={ "rowGrid stat " + (i % 2 === 0 ? "even" : "odd") }>
+        <span className="playerNameCol">{p.firstName} {p.familyName}</span>
+        <span>{minutes}</span>
+        <span>{p.statistics.fieldGoalsMade}</span>
+        <span>{p.statistics.fieldGoalsAttempted}</span>
+        <span>{p.statistics.fieldGoalsPercentage === 1 ? 100 : (Math.round(p.statistics.fieldGoalsPercentage * 100 * 10) / 10).toFixed(1)}</span>
+        <span>{p.statistics.threePointersMade}</span>
+        <span>{p.statistics.threePointersAttempted}</span>
+        <span>{p.statistics.threePointersPercentage === 1 ? 100 : (Math.round(p.statistics.threePointersPercentage * 100 * 10) / 10).toFixed(1)}</span>
+        <span>{p.statistics.freeThrowsMade}</span>
+        <span>{p.statistics.freeThrowsAttempted}</span>
+        <span>{p.statistics.freeThrowsPercentage === 1 ? 100 : (Math.round(p.statistics.freeThrowsPercentage * 100 * 10) / 10).toFixed(1)}</span>
+        <span>{p.statistics.reboundsOffensive}</span>
+        <span>{p.statistics.reboundsDefensive}</span>
+        <span>{p.statistics.reboundsTotal}</span>
+        <span>{p.statistics.assists}</span>
+        <span>{p.statistics.steals}</span>
+        <span>{p.statistics.blocks}</span>
+        <span>{p.statistics.turnovers}</span>
+        <span>{p.statistics.foulsPersonal}</span>
+        <span>{p.statistics.points}</span>
+        <span>{p.statistics.plusMinusPoints}</span>
+      </div>
+    )
+  });
+
   let fg;
   if ((teamTotals.fieldGoalsMade / teamTotals.fieldGoalsAttempted) === 1) {
     fg = 100;
@@ -26,5 +83,69 @@ export default function(teamTotals) {
   if (ft === 'NaN') {
     ft = 0;
   }
-  return [fg, pt3, ft];
+  const totalRow = teamBox && (
+    <div className={ "rowGrid stat " + (teamBox.length % 2 === 0 ? 'even' : 'odd')}>
+      <span className="playerNameCol">TEAM</span>
+      <span></span>
+      <span>{teamTotals.fieldGoalsMade}</span>
+      <span>{teamTotals.fieldGoalsAttempted}</span>
+      <span>{fg}</span>
+      <span>{teamTotals.threePointersMade}</span>
+      <span>{teamTotals.threePointersAttempted}</span>
+      <span>{pt3}</span>
+      <span>{teamTotals.freeThrowsMade}</span>
+      <span>{teamTotals.freeThrowsAttempted}</span>
+      <span>{ft}</span>
+      <span>{teamTotals.reboundsOffensive}</span>
+      <span>{teamTotals.reboundsDefensive}</span>
+      <span>{teamTotals.reboundsTotal}</span>
+      <span>{teamTotals.assists}</span>
+      <span>{teamTotals.steals}</span>
+      <span>{teamTotals.blocks}</span>
+      <span>{teamTotals.turnovers}</span>
+      <span>{teamTotals.foulsPersonal}</span>
+      <span>{teamTotals.points}</span>
+      <span></span>
+    </div>
+  );
+
+  const statHeadings = (
+    <div className="rowGrid statHeadings">
+      <span>PLAYER</span>
+      <span>MIN</span>
+      <span>FGM</span>
+      <span>FGA</span>
+      <span>FG%</span>
+      <span>3PM</span>
+      <span>3PA</span>
+      <span>3P%</span>
+      <span>FTM</span>
+      <span>FTA</span>
+      <span>FT%</span>
+      <span>OREB</span>
+      <span>DREB</span>
+      <span>REB</span>
+      <span>AST</span>
+      <span>STL</span>
+      <span>BLK</span>
+      <span>TO</span>
+      <span>PF</span>
+      <span>PTS</span>
+      <span>+/-</span>
+    </div>
+  );
+  teamBox && teamBox.unshift(statHeadings);
+  teamBox && teamBox.push(totalRow);
+
+  return (
+    <div className='teamSection'>
+      <div className="rowGrid teamRow">
+        <div className="team">
+          {team ? <img height="30" width="30" src={`img/teams/${team?.teamTricode}.png`}></img> : ''}
+          <span>{team?.teamName}</span>
+        </div>
+      </div>
+      {teamBox}
+    </div>
+  );
 }
