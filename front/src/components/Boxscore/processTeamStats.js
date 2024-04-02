@@ -7,6 +7,7 @@ export default function(team) {
   const leftCol = [<div className="statHeadings"><span>PLAYER</span></div>];
   const teamBox = team.players.filter(p => {
     let minutes = p.statistics.minutes;
+    if (!minutes) return false;
     if (minutes.includes('PT')) {
       minutes = minutes.slice(2, -4).replace('M', ':');
     }
