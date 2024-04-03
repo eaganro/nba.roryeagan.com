@@ -126,14 +126,20 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
 
   return (
     <div className='schedule'>
-      <IconButton className='scheduleButton' onClick={dateDown}><NavigateBefore /></IconButton>
-      <input className='dateInput' type="date" value={date} onChange={(e) => changeDate(e)}></input>
-      <IconButton className='scheduleButton' onClick={dateUp}><NavigateNext /></IconButton>
-      <IconButton className='scheduleButton' onClick={scrollScheduleLeft}><NavigateBefore /></IconButton>
-      <div className="games" ref={scrollRef}>
-        {gamesList}
+      <div className='scheduleContent'>
+        <div className='datePick'>
+          <IconButton className='scheduleButton' onClick={dateDown}><NavigateBefore /></IconButton>
+          <input className='dateInput' type="date" value={date} onChange={(e) => changeDate(e)}></input>
+          <IconButton className='scheduleButton' onClick={dateUp}><NavigateNext /></IconButton>
+        </div>
+        <div className='gamePick'>
+          <IconButton className='scheduleButton' onClick={scrollScheduleLeft}><NavigateBefore /></IconButton>
+          <div className="games" ref={scrollRef}>
+            {gamesList}
+          </div>
+          <IconButton className='scheduleButton end' onClick={scrollScheduleRight}><NavigateNext /></IconButton>
+        </div>
       </div>
-      <IconButton className='scheduleButton' onClick={scrollScheduleRight}><NavigateNext /></IconButton>
     </div>
   );
 }
