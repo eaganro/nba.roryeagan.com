@@ -50,7 +50,10 @@
     display: flex;
   }
   .leftCol {
-    flex-basis: 200px;
+    max-width: 200px;
+    min-width: 125px;
+    width: calc(33vw);
+    // flex-basis: 200px;
     flex-shrink: 0;
     flex-grow: 0;
     display: flex;
