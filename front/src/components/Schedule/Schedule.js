@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { NavigateNext, NavigateBefore } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
+import { dateAdd, dateMinus } from '../../environment';
+
 
 import './Schedule.scss';
 
@@ -85,7 +87,7 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
 
   const dateDown = () => {
     const downdate = new Date(date);
-    downdate.setDate(downdate.getDate());
+    downdate.setDate(downdate.getDate() - dateMinus);
     let month = downdate.getMonth() + 1;
     if (month < 10) {
       month = '0' + month;
@@ -102,7 +104,7 @@ export default function Schedule({ games, date, changeDate, changeGame }) {
   }
   const dateUp = () => {
     const update = new Date(date);
-    update.setDate(update.getDate() + 2);
+    update.setDate(update.getDate() + dateAdd);
     let month = update.getMonth() + 1;
     if (month < 10) {
       month = '0' + month;
