@@ -1,9 +1,12 @@
 import './Score.scss';
 
-export default function Score({ homeTeam, awayTeam, score }) {
+export default function Score({ homeTeam, awayTeam, score, date}) {
+
+  const gameDate = new Date(date)
 
   return (
-    <div className=''>
+    <div className='scoreElement'>
+      <div>{gameDate.toDateString()}</div>
       <div className='scoreArea'>
         <div>{score ? score.away : '--'}</div>
         <img height="80" width="80" className='awayImg' src={`img/teams/${awayTeam}.png`}></img>

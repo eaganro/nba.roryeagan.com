@@ -245,7 +245,7 @@ export default function App() {
         homeTeam={box?.homeTeam?.teamTricode}
         awayTeam={box?.awayTeam?.teamTricode}
         score={scoreTimeline[scoreTimeline.length - 1]}
-      ></Score>
+        date={box.gameEt}></Score>
       <div className='playByPlaySection' ref = {playByPlaySectionRef}>
         <Play
           awayTeamNames={awayTeamName}
