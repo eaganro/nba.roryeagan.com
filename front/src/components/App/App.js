@@ -30,7 +30,7 @@ export default function App() {
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
   // const [gameId, setGameId] = useState("0022300216");
-  const [gameId, setGameId] = useState("0022300779");
+  const [gameId, setGameId] = useState("0042300402");
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
