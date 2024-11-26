@@ -134,6 +134,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
         if (y2 <= 0) {
           pospoints.push(`${leftMargin + x2},${300 + y2}`);
         } else {
+          pos = false;
           pospoints.push(`${leftMargin + x2},${300}`);
           negpoints.push(`${leftMargin + x2},${300}`);
           negpoints.push(`${leftMargin + x2},${300 + y2}`);
@@ -144,6 +145,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
         if (y2 >= 0) {
           negpoints.push(`${leftMargin + x2},${300 + y2}`);
         } else {
+          pos = true;
           negpoints.push(`${leftMargin + x2},${300}`);
           pospoints.push(`${leftMargin + x2},${300}`);
           pospoints.push(`${leftMargin + x2},${300 + y2}`);
