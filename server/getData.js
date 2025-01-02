@@ -4,14 +4,14 @@ import schedule from 'node-schedule';
 import database from './database.js';
 import myEmitter from './eventEmitter.js';
 
-schedule.scheduleJob('0 11 * * *', async () => {
+// schedule.scheduleJob('48 16 * * *', async () => {
   const today = new Date();
   let month = today.getMonth() + 1;
   if (month < 10) {
     month = '0' + month;
   }
   today.setHours(today.getHours() - 8)
-  let day = today.getDate() + 1;
+  let day = today.getDate();
   if (day < 10) {
     day = '0' + day;
   }
@@ -28,12 +28,14 @@ schedule.scheduleJob('0 11 * * *', async () => {
 
   try {
     let games = await database.getDate(todayString)
-    games.rows.forEach(game => {
+    console.log
+    games.rows.forEach(async game => {
+      let gameId = game.id;
       try {
         let gameUrl = `${game.awayteam}-vs-${game.hometeam}-${game.id}`
         let startTime = new Date(game.starttime)
         console.log(gameUrl, startTime)
-        schedule.scheduleJob(startTime, async () => {
+        // schedule.scheduleJob(startTime, async () => {
           const page = await browser.newPage();
           await page.setDefaultNavigationTimeout(0);
 
@@ -45,18 +47,20 @@ schedule.scheduleJob('0 11 * * *', async () => {
                 const actions = playbyplay?.game?.actions;
                 fs.writeFileSync(`public/data/playByPlayData/${gameId}.json`, JSON.stringify(actions), 'utf8');
                 myEmitter.emit('update', { gameId, type: 'playByPlayData', data: JSON.stringify(actions)  });
-
+                console.log('asdfasf', gameUrl)
                 const box = playbyplay?.game?.box;
-                try {
-                  fs.writeFileSync(`public/data/boxData/${gameId}.json`, JSON.stringify(box), 'utf8');
-                  database.insertGame(box);
-                  myEmitter.emit('update', { gameId, type: 'boxData', data: JSON.stringify(box) });
-                  if (box.gameStatusText.startsWith('Final')) {
-                    await page.close()
-                    console.log('page closed for game ' + gameUrl)
+                if (box !== undefined) {
+                  try {
+                    fs.writeFileSync(`public/data/boxData/${gameId}.json`, JSON.stringify(box), 'utf8');
+                    database.insertGame(box);
+                    myEmitter.emit('update', { gameId, type: 'boxData', data: JSON.stringify(box) });
+                    if (box.gameStatusText.startsWith('Final')) {
+                      await page.close()
+                      console.log('page closed for game ' + gameUrl)
+                    }
+                  } catch (error) {
+                    console.log(error)
                   }
-                } catch (error) {
-                  console.log(error)
                 }
                 
               } catch (error) {
@@ -83,7 +87,7 @@ schedule.scheduleJob('0 11 * * *', async () => {
           })
           await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36');
           await page.goto(`https://www.nba.com/game/${gameUrl}/box-score`);
-        })
+        // })
       } catch (error) {
         console.log('error with: ' + `${game.awayteam}-vs-${game.hometeam}-${game.id}`)
         console.log(error)
@@ -93,4 +97,4 @@ schedule.scheduleJob('0 11 * * *', async () => {
     console.log('error on: ' + todayString)
     console.log(error)
   }
-})
+// })
