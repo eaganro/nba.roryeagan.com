@@ -70,11 +70,28 @@ wss.on('connection', function connection(ws) {
 
 myEmitter.on('update', ({gameId, type, data}) => {
   onDataUpdate(gameId, type, data);
+  if (type === 'boxData') {
+    const today = new Date();
+    let month = today.getMonth() + 1;
+    if (month < 10) {
+      month = '0' + month;
+    }
+    today.setHours(today.getHours() - 8)
+    let day = today.getDate();
+    if (day < 10) {
+      day = '0' + day;
+    }
+    const todayString = `${today.getFullYear()}-${month}-${day}`
+    myEmitter.emit('scheduleUpdate',  { date: todayString, type: 'date' });
+  }
 });
 myEmitter.on('scheduleUpdate', async ({date, type}) => {
   if (type === 'date'){
     const data = await database.getDate(date);
     const subscribers = dateSubscriptions[date];
+    console.log('lisbdflsahdf', date)
+    console.log(dateSubscriptions)
+    console.log(subscribers)
     if (subscribers) {
       try {
         subscribers.forEach((client) => {
