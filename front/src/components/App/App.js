@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { fixPlayerName } from '../../utils';
 import { sortActions, filterActions, processScoreTimeline, createPlayers,
   createPlaytimes, updatePlaytimesWithAction, quarterChange, endPlaytimes } from '../../dataProcessing';
@@ -10,7 +10,7 @@ import Boxscore from '../Boxscore/Boxscore';
 import Play from '../Play/Play';
 import StatButtons from '../StatButtons/StatButtons';
 
-import { wsLocation } from '../../environment';
+import { wsLocation, PREFIX } from '../../environment';
 
 import './App.scss';
 export default function App() {
@@ -31,7 +31,7 @@ export default function App() {
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
   // const [gameId, setGameId] = useState("0022300216");
-  const [gameId, setGameId] = useState("0022400104");
+  const [gameId, setGameId] = useState("0042400212");
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
@@ -56,39 +56,46 @@ export default function App() {
 
   const [ws, setWs] = useState(null);
 
-  useEffect(() => {
+  // const gameRef = useRef(gameId);
+  // const dateRef = useRef(date);
+  // useEffect(() => { gameRef.current = gameId }, [gameId]);
+  // useEffect(() => { dateRef.current = date }, [date]);
+
+  const connect = () => {
+    if (ws?.readyState === WebSocket.OPEN || ws?.readyState === WebSocket.CONNECTING) {
+      return;
+    }
+
     const newWs = new WebSocket(wsLocation);
     setWs(newWs);
 
     newWs.onopen = () => {
       console.log('Connected to WebSocket');
-      newWs.send(JSON.stringify({ type: 'gameId', gameId }));
-      newWs.send(JSON.stringify({ type: 'date', date }));
+      newWs.send(JSON.stringify({ action: 'followGame', gameId }));
+      newWs.send(JSON.stringify({ action: 'followDate', date }));
     };
 
-    newWs.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if(data.type === 'playByPlayData') {
-        const play = JSON.parse(data.data);
-        if (play[play.length - 1] && play[play.length - 1].period > 4) {
-          setNumQs(play[play.length - 1].period);
-        } else {
-          setNumQs(4);
+    newWs.onmessage = async (event) => {
+      let msg;
+      try {
+        msg = JSON.parse(event.data);
+      } catch (err) {
+        console.error("Malformed WS message", event.data, err);
+        return;
+      }
+    
+      try {
+        if (msg.key?.includes("playByPlayData")) {
+          const url = `${PREFIX}/${encodeURIComponent(msg.key)}?v=${msg.version}`;
+          getPlayByPlay(url);
+        } else if (msg.key?.includes("boxData")) {
+          const url = `${PREFIX}/${encodeURIComponent(msg.key)}?v=${msg.version}`;
+          getBox(url);
+        } else if (msg.type === "date") {
+          setGames(msg.data);
         }
-        setLastAction(play[play.length - 1])
-        setPlayByPlay(play);
-        setPlayByPlay(play);
-      } else if (data.type === 'boxData') {
-        const box = JSON.parse(data.data);
-        setBox(box);
-        setAwayTeamId(box.awayTeamId ? box.awayTeamId : box.awayTeam.teamId);
-        setHomeTeamId(box.homeTeamId ? box.homeTeamId : box.homeTeam.teamId);
-      } else if (data.type === 'date') {
-        let scheduleGames = data.data;
-        console.log(scheduleGames);
-        setGames(scheduleGames);
-      } else {
-        gameDataReceiver(data);
+      } catch (err) {
+        console.error("Error handling WS message", msg, err);
       }
     };
 
@@ -96,64 +103,105 @@ export default function App() {
       console.log('Disconnected from WebSocket');
     };
 
-    return () => {
-      newWs.close();
-    };
+  };
+
+  useEffect(() => {
+    connect();
+    // return () => ws?.close();
   }, []);
 
   useEffect(() => {
-    if (ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: 'date', date }));
-    } else {
-      fetch(`games?date=${date}`).then(r =>  {
-        if (r.status === 404) {
-          return [];
-        } else {
-          return r.json()
-        }
-      }).then(gamesData => {
-        setGames(gamesData.data);
-      });
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ action: 'followDate', date }));
+    } else if (ws !== null) {
+      connect();
     }
   }, [date]);
 
   useEffect(() => {
-    if (ws && ws.readyState === 1) {
-      console.log('hereasdf')
-      ws.send(JSON.stringify({ type: 'gameId', gameId }));
-    } else {
-      console.log('no ws');
-      fetch(`game?gameId=${gameId}`).then(r =>  {
-        if (r.status === 404) {
-          return [];
-        } else {
-          return r.json()
-        }
-      }).then(gameData => {
-        console.log(gameData);
-        gameDataReceiver(gameData);
-      });
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ action: 'followGame', gameId }));
+    } else if (ws !== null) {
+      connect();
     }
+    getBoth();
   }, [gameId]);
+
+
 
   useEffect(() => {
     processPlayData(playByPlay);
   }, [playByPlay, statOn]);
 
-  const gameDataReceiver = (data) => {
-    const { play, box } = data;
+const getBoth = async () => {
+  const boxUrl  = `${PREFIX}/data/boxData/${gameId}.json.gz`;
+  const playUrl = `${PREFIX}/data/playByPlayData/${gameId}.json.gz`;
 
+  try {
+    const [boxRes, playRes] = await Promise.all([
+      fetch(boxUrl),
+      fetch(playUrl).then(res => {
+        if (!res.ok && res.status === 404) {
+          setPlayByPlay([]);
+          setLastAction(null);
+          setNumQs(4);
+          return null;
+        }
+        if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
+        return res.json();
+      }),
+    ]);
+
+    if (!boxRes.ok) throw new Error(`S3 fetch failed: ${boxRes.status}`);
+    const box = await boxRes.json();
     setBox(box);
-    setAwayTeamId(box.awayTeamId ? box.awayTeamId : box.awayTeam.teamId);
-    setHomeTeamId(box.homeTeamId ? box.homeTeamId : box.homeTeam.teamId);
+    setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
+    setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
 
-    if (play[play.length - 1] && play[play.length - 1].period > 4) {
-      setNumQs(play[play.length - 1].period);
-    } else {
-      setNumQs(4);
+    const play = playRes;
+    if (play) {
+      const last = play[play.length - 1] || null;
+      setNumQs(last?.period > 4 ? last?.period : 4);
+      setLastAction(last);
+      setPlayByPlay(play);
     }
-    setLastAction(play[play.length - 1])
+  } catch (err) {
+    console.error('Error in getBoth:', err);
+  }
+};
+
+  const getPlayByPlay = async (url) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      if (res.status === 404) {
+        setPlayByPlay([]);  
+        setLastAction(null);
+        setNumQs(4);
+        return;
+      }
+      throw new Error(`S3 fetch failed: ${res.status}`);
+    }
+    let play = await res.json()
+
+    const last = play[play.length - 1] || null;
+    setNumQs(last?.period > 4 ? last?.period : 4);
+    setLastAction(last);
+
+
+    if (last?.status?.trim().startsWith('Final')) {
+      await getBox(`${PREFIX}/data/boxData/${gameId}.json.gz`);
+      ws?.close();
+    }
     setPlayByPlay(play);
+  }
+
+  const getBox = async (url) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
+    const box = await res.json();
+    setBox(box);
+    setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
+    setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
   }
 
   const changeDate = (e) => {
@@ -209,7 +257,9 @@ export default function App() {
       homePlayers[name] = homePlayers[name].filter((a) => filterActions(a, statOn));
     });
     allAct = sortActions(allAct);
-
+    
+    console.log(homePlayers)
+    console.log(awayPlayers)
     setAllActions(allAct);
     setAwayActions(awayPlayers);
     setHomeActions(homePlayers);
