@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { timeToSeconds } from '../../utils';
+import { timeToSeconds } from '../../helpers/utils';
 // import getWindowDimensions from '../hooks/windowDimensions';
 
 import Player from './Player/Player';

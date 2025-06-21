@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { fixPlayerName } from '../../utils';
+import { fixPlayerName } from '../../helpers/utils';
 import { sortActions, filterActions, processScoreTimeline, createPlayers,
-  createPlaytimes, updatePlaytimesWithAction, quarterChange, endPlaytimes } from '../../dataProcessing';
+  createPlaytimes, updatePlaytimesWithAction, quarterChange, endPlaytimes } from '../../helpers/dataProcessing';
 
 
 import Schedule from '../Schedule/Schedule';
@@ -128,42 +128,42 @@ export default function App() {
     processPlayData(playByPlay);
   }, [playByPlay, statOn]);
 
-const getBoth = async () => {
-  const boxUrl  = `${PREFIX}/data/boxData/${gameId}.json.gz`;
-  const playUrl = `${PREFIX}/data/playByPlayData/${gameId}.json.gz`;
+  const getBoth = async () => {
+    const boxUrl  = `${PREFIX}/data/boxData/${gameId}.json.gz`;
+    const playUrl = `${PREFIX}/data/playByPlayData/${gameId}.json.gz`;
 
-  try {
-    const [boxRes, playRes] = await Promise.all([
-      fetch(boxUrl),
-      fetch(playUrl).then(res => {
-        if (!res.ok && res.status === 404) {
-          setPlayByPlay([]);
-          setLastAction(null);
-          setNumQs(4);
-          return null;
-        }
-        if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
-        return res.json();
-      }),
-    ]);
+    try {
+      const [boxRes, playRes] = await Promise.all([
+        fetch(boxUrl),
+        fetch(playUrl).then(res => {
+          if (!res.ok && res.status === 404) {
+            setPlayByPlay([]);
+            setLastAction(null);
+            setNumQs(4);
+            return null;
+          }
+          if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
+          return res.json();
+        }),
+      ]);
 
-    if (!boxRes.ok) throw new Error(`S3 fetch failed: ${boxRes.status}`);
-    const box = await boxRes.json();
-    setBox(box);
-    setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
-    setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
+      if (!boxRes.ok) throw new Error(`S3 fetch failed: ${boxRes.status}`);
+      const box = await boxRes.json();
+      setBox(box);
+      setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
+      setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
 
-    const play = playRes;
-    if (play) {
-      const last = play[play.length - 1] || null;
-      setNumQs(last?.period > 4 ? last?.period : 4);
-      setLastAction(last);
-      setPlayByPlay(play);
+      const play = playRes;
+      if (play) {
+        const last = play[play.length - 1] || null;
+        setNumQs(last?.period > 4 ? last?.period : 4);
+        setLastAction(last);
+        setPlayByPlay(play);
+      }
+    } catch (err) {
+      console.error('Error in getBoth:', err);
     }
-  } catch (err) {
-    console.error('Error in getBoth:', err);
-  }
-};
+  };
 
   const getPlayByPlay = async (url) => {
     const res = await fetch(url);

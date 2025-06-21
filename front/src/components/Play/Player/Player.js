@@ -1,4 +1,4 @@
-import { timeToSeconds } from '../../../utils';
+import { timeToSeconds } from '../../../helpers/utils';
 
 import './Player.scss';
 export default function Player({ actions, timeline, name, width, numQs, heightDivide, highlight, leftMargin }) {
