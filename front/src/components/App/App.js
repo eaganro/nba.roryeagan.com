@@ -26,12 +26,18 @@ export default function App() {
     day = '0' + day;
   }
   let val = `${today.getFullYear()}-${month}-${day}`
-  const [date, setDate] = useState(val);
+
+  // Read optional query params on load
+  const initialParams = new URLSearchParams(window.location.search);
+  const initialDate = initialParams.get('date') || val;
+  const initialGameId = initialParams.get('gameid') || "0042400212";
+
+  const [date, setDate] = useState(initialDate);
   const [games, setGames] = useState([]);
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
   // const [gameId, setGameId] = useState("0022300216");
-  const [gameId, setGameId] = useState("0042400212");
+  const [gameId, setGameId] = useState(initialGameId);
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
@@ -105,12 +111,37 @@ export default function App() {
     // return () => ws?.close();
   }, []);
 
+  // Keep query params in sync when date or game changes
+  const updateQueryParams = useCallback((newDate, newGameId) => {
+    const params = new URLSearchParams(window.location.search);
+    if (newDate) {
+      params.set('date', newDate);
+    } else {
+      params.delete('date');
+    }
+    if (newGameId) {
+      params.set('gameid', newGameId);
+    } else {
+      params.delete('gameid');
+    }
+    const query = params.toString();
+    const newUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+    window.history.replaceState({}, '', newUrl);
+  }, []);
+
+  // On initial mount, ensure URL reflects initial state
+  useEffect(() => {
+    updateQueryParams(date, gameId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ action: 'followDate', date }));
     } else if (ws !== null) {
       connect();
     }
+    updateQueryParams(date, gameId);
   }, [date]);
 
   useEffect(() => {
@@ -120,6 +151,7 @@ export default function App() {
       connect();
     }
     getBoth();
+    updateQueryParams(date, gameId);
   }, [gameId]);
 
 
@@ -200,11 +232,14 @@ export default function App() {
   }
 
   const changeDate = (e) => {
-    setDate(e.target.value);
+    const newDate = e.target.value;
+    setDate(newDate);
+    updateQueryParams(newDate, gameId);
   }
 
   const changeGame = (id) => {
     setGameId(id);
+    updateQueryParams(date, id);
   }
 
   const processPlayData = (data) => {
