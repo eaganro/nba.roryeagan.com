@@ -233,51 +233,55 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     );
   }
   let mouseLine = null;
-  const mouseOver = (e) => {
-    if (showMouse && !infoLocked) {
-      let el = e.target;
-      while (el.className !== 'play') {
-        el = el.parentElement;
-      }
-      let pos = e.clientX - el.offsetLeft - leftMargin;
+  const updateHoverAt = (clientX, clientY, targetEl) => {
+    if (!(showMouse && !infoLocked)) return;
+    let el = targetEl;
+    while (el && el.className !== 'play') {
+      el = el.parentElement;
+    }
+    if (!el) return;
+    let pos = clientX - el.offsetLeft - leftMargin;
 
-      // Update mouse position for tooltip
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    // Update position for tooltip
+    setMousePosition({ x: clientX, y: clientY });
 
-      let a = 0;
+    let a = 0;
 
-      let goneOver = false;
-      let sameTime = 1;
-      for (let i = 1; i < allActions.length && goneOver === false; i += 1) {
-        let actionPos = (((allActions[i].period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(allActions[i].clock)) / (4 * 12 * 60)) * (qWidth * 4);
-        if (allActions[i].period > 4) {
-          actionPos = ((4 * 12 * 60 + 5 * (allActions[i].period - 4) * 60 - timeToSeconds(allActions[i].clock)) / (4 * 12 * 60)) * (qWidth * 4);
-        }
-        if (actionPos > pos) {
-          goneOver = true;
-        } else {
-          if (allActions[a].clock === allActions[i].clock) {
-            sameTime += 1;
-          } else {
-            sameTime = 1;
-          }
-          a = i;
-        }
+    let goneOver = false;
+    let sameTime = 1;
+    for (let i = 1; i < allActions.length && goneOver === false; i += 1) {
+      let actionPos = (((allActions[i].period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(allActions[i].clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      if (allActions[i].period > 4) {
+        actionPos = ((4 * 12 * 60 + 5 * (allActions[i].period - 4) * 60 - timeToSeconds(allActions[i].clock)) / (4 * 12 * 60)) * (qWidth * 4);
       }
-      const hoverActions = [];
-      const hoverActionIds = [];
-      for (let i = 0; i < sameTime; i += 1) {
-        hoverActions.push(allActions[a - i]);
-        hoverActionIds.push(allActions[a - i].actionNumber);
-      }
-      setHighlightActionIds(hoverActionIds);
-      setDescriptionArray(hoverActions);
-      if (pos < 0 || pos > width) {
-        setMouseLinePos(null);
+      if (actionPos > pos) {
+        goneOver = true;
       } else {
-        setMouseLinePos(pos + leftMargin);
+        if (allActions[a].clock === allActions[i].clock) {
+          sameTime += 1;
+        } else {
+          sameTime = 1;
+        }
+        a = i;
       }
     }
+    const hoverActions = [];
+    const hoverActionIds = [];
+    for (let i = 0; i < sameTime; i += 1) {
+      hoverActions.push(allActions[a - i]);
+      hoverActionIds.push(allActions[a - i].actionNumber);
+    }
+    setHighlightActionIds(hoverActionIds);
+    setDescriptionArray(hoverActions);
+    if (pos < 0 || pos > width) {
+      setMouseLinePos(null);
+    } else {
+      setMouseLinePos(pos + leftMargin);
+    }
+  };
+
+  const mouseOver = (e) => {
+    updateHoverAt(e.clientX, e.clientY, e.target);
   }
 
   const mouseOut = (e) => {
@@ -300,6 +304,28 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     }
   }
 
+  // Touch support: show tooltip while dragging finger over play area
+  const onTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      updateHoverAt(e.touches[0].clientX, e.touches[0].clientY, e.target);
+    }
+  };
+
+  const onTouchMove = (e) => {
+    if (e.touches && e.touches[0]) {
+      // Prevent page from scrolling while scrubbing timeline
+      e.preventDefault();
+      updateHoverAt(e.touches[0].clientX, e.touches[0].clientY, e.target);
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (!infoLocked) {
+      setMouseLinePos(null);
+      setDescriptionArray([]);
+    }
+  };
+
   let awayColor = awayTeamNames.abr ? rgbToRgba(teamColor[awayTeamNames.abr], 0.3) : '';
   let homeColor = homeTeamNames.abr ? rgbToRgba(teamColor[homeTeamNames.abr], 0.3) : '';
 
@@ -313,7 +339,17 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
   const tooltipVerticalTransform = shouldPositionBelow ? 'translateY(0)' : 'translateY(-100%)';
 
   return (
-    <div onMouseMove={mouseOver} onMouseOut={mouseOut} onClick={handleClick} className='play' style={{ width: width + leftMargin }}>
+    <div
+      onMouseMove={mouseOver}
+      onMouseOut={mouseOut}
+      onClick={handleClick}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchEnd}
+      className='play'
+      style={{ width: width + leftMargin }}
+    >
       {descriptionArray.length > 0 && (
         <div 
           className="descriptionArea"
