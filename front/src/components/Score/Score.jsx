@@ -1,4 +1,5 @@
 import './Score.scss';
+import { PREFIX } from '../../environment';
 
 export default function Score({ homeTeam, awayTeam, score, date, changeDate}) {
 
@@ -22,9 +23,13 @@ export default function Score({ homeTeam, awayTeam, score, date, changeDate}) {
       <div onClick={changeToGameDate} className='gameDate'>{gameDate.toDateString().slice(4)}</div>
       <div className='scoreArea'>
         <div>{score ? score.away : '--'}</div>
-        <img height="80" width="80" className='awayImg' src={`img/teams/${awayTeam}.png`}></img>
+        {awayTeam && (
+          <img height="80" width="80" className='awayImg' src={`${PREFIX ? PREFIX : ''}/img/teams/${awayTeam}.png`} alt={awayTeam} />
+        )}
         <div className='at'>AT</div>
-        <img height="80" width="80" className='homeImg' src={`img/teams/${homeTeam}.png`}></img>
+        {homeTeam && (
+          <img height="80" width="80" className='homeImg' src={`${PREFIX ? PREFIX : ''}/img/teams/${homeTeam}.png`} alt={homeTeam} />
+        )}
         <div>{score ? score.home : '--'}</div>
       </div>
     </div>

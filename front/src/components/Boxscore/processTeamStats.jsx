@@ -1,6 +1,7 @@
 import { UnfoldMore, UnfoldLess } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import { useRef, useEffect } from 'react';
+import { PREFIX } from '../../environment';
 
 export default function(team, showButton, showMore, setShowMore, scrollPos, setScrollPos) {
   const ref = useRef(null);
@@ -158,7 +159,14 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
     <div>
       <div className="teamRow">
         <div className="team">
-          {team ? <img height="30" width="30" src={`img/teams/${team?.teamTricode}.png`}></img> : ''}
+          {team ? (
+            <img
+              height="30"
+              width="30"
+              src={`${PREFIX ? PREFIX : ''}/img/teams/${team?.teamTricode}.png`}
+              alt={`${team?.teamTricode}`}
+            />
+          ) : ''}
           <span>{team?.teamName}</span>
           {showButton && <div className='showMore' onClick={() => setShowMore(!showMore)}><IconButton onClick={() =>{}}>{showMore ? <UnfoldLess /> : <UnfoldMore />}</IconButton></div>}
         </div>
