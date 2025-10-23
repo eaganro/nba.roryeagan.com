@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script>
+      if (window.location.hostname === 'roryeagan.com') {
+        const baseTag = document.createElement('base');
+        baseTag.href = '/nba/';
+        document.head.appendChild(baseTag);
+      }
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ball</title>
+  </head>
+  <body style="background-color: rgb(234, 235, 237);">
+    <section id="root"></section>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>
