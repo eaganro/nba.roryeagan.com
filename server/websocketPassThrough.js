@@ -9,7 +9,20 @@ args.forEach((val, index) => {
   }
 });
 
-const wsProxy = createProxyMiddleware({ target: 'ws://100.126.126.12:' + port, changeOrigin: true, ws: true, logger: console });
+const wsProxy = createProxyMiddleware({
+	target: 'ws://100.126.126.12:' + port,
+	changeOrigin: true,
+	ws: true,
+	logger: console,
+	on: {
+		proxyReq: (proxyReq, req, res) => {
+			console.log(`Proxying request: ${req.method} ${req.originalUrl}`);
+		},
+		proxyRes: (proxyRes, req, res) => {
+			console.log(`Proxying response: ${res.method} ${res.originalUrl}`);
+		}
+	}
+});
 
 const app = express();
 app.use(wsProxy);
