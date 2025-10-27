@@ -56,15 +56,8 @@ export default function Schedule({ games, date, changeDate, changeGame, isLoadin
     if (!g.status.endsWith('ET')) {
       return (
         <div className='game' key={g.id} onClick={() => handleGameClick(g.id)}>
-<<<<<<< HEAD
-          <div class="iconRow">
-            {g.awayteam && (
-              <img height="16" width="16" draggable={false} src={`${PREFIX ? PREFIX : ''}/img/teams/${g.awayteam}.png`} alt={g.awayteam} />
-            )}
-=======
           <div className='iconRow'>
             <img height="16" width="16" draggable={false} src={`img/teams/${g.awayteam}.png`}></img>
->>>>>>> serverless
             {g.awayteam} - {g.hometeam}
             {g.hometeam && (
               <img height="16" width="16" draggable={false} src={`${PREFIX ? PREFIX : ''}/img/teams/${g.hometeam}.png`} alt={g.hometeam} />
@@ -77,15 +70,8 @@ export default function Schedule({ games, date, changeDate, changeGame, isLoadin
     } else {
       return (
         <div className='game' key={g.id} onClick={() => handleGameClick(g.id)}>
-<<<<<<< HEAD
-          <div class="iconRow">
-            {g.awayteam && (
-              <img height="16" width="16" draggable={false} src={`${PREFIX ? PREFIX : ''}/img/teams/${g.awayteam}.png`} alt={g.awayteam} />
-            )}
-=======
           <div className='iconRow'>
             <img height="16" width="16" draggable={false} src={`img/teams/${g.awayteam}.png`}></img>
->>>>>>> serverless
             {g.awayteam} - {g.hometeam}
             {g.hometeam && (
               <img height="16" width="16" draggable={false} src={`${PREFIX ? PREFIX : ''}/img/teams/${g.hometeam}.png`} alt={g.hometeam} />
