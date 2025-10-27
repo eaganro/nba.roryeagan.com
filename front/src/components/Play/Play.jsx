@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
 import { timeToSeconds, formatClock, formatPeriod } from '../../helpers/utils';
 // import getWindowDimensions from '../hooks/windowDimensions';
 
@@ -6,7 +7,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction }) {
+export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction, isLoading }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -58,10 +59,42 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     WAS: 'rgb(0 43 92)',
   };
 
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  window.addEventListener("resize", () => {
-    setWindowWidth(window.innerWidth);
-  });
+  useEffect(() => {
+    const handleOutside = (ev) => {
+      if (!infoLocked) return;
+      const container = playRef.current;
+      if (!container) return;
+      if (!container.contains(ev.target)) {
+        setInfoLocked(false);
+        setMouseLinePos(null);
+        setDescriptionArray([]);
+        setHighlightActionIds([]);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside, { passive: true });
+    document.addEventListener('touchstart', handleOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+    };
+  }, [infoLocked]);
+
+  if (isLoading) {
+    return (
+      <div className='play'>
+        <div className='loadingIndicator'>
+          <CircularProgress size={24} thickness={5} />
+          <span>Loading play-by-play...</span>
+        </div>
+      </div>
+    );
+  }
   const playtimes = {};
   Object.keys(awayPlayers).forEach(player => {
     playtimes[player] = {
@@ -318,27 +351,6 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
       setHighlightActionIds([]);
     }
   }
-
-  // Close tooltip if clicking/tapping outside of play area when locked
-  useEffect(() => {
-    const handleOutside = (ev) => {
-      if (!infoLocked) return;
-      const container = playRef.current;
-      if (!container) return;
-      if (!container.contains(ev.target)) {
-        setInfoLocked(false);
-        setMouseLinePos(null);
-        setDescriptionArray([]);
-        setHighlightActionIds([]);
-      }
-    };
-    document.addEventListener('mousedown', handleOutside, { passive: true });
-    document.addEventListener('touchstart', handleOutside, { passive: true });
-    return () => {
-      document.removeEventListener('mousedown', handleOutside);
-      document.removeEventListener('touchstart', handleOutside);
-    };
-  }, [infoLocked]);
 
   // Touch support: show tooltip while dragging finger over play area
   const onTouchStart = (e) => {

@@ -51,6 +51,9 @@ export default function App() {
   const [homePlayerTimeline, setHomePlayerTimeline] = useState([]);
   const [awayPlayerTimeline, setAwayPlayerTimeline] = useState([]);
 
+  const [isBoxLoading, setIsBoxLoading] = useState(true);
+  const [isPlayLoading, setIsPlayLoading] = useState(true);
+
 
   const [playByPlaySectionWidth, setPlayByPlaySectionWidth] = useState(0);
 
@@ -166,6 +169,9 @@ export default function App() {
     const boxUrl  = `${PREFIX}/data/boxData/${gameId}.json.gz`;
     const playUrl = `${PREFIX}/data/playByPlayData/${gameId}.json.gz`;
 
+    setIsBoxLoading(true);
+    setIsPlayLoading(true);
+
     try {
       const [boxRes, playRes] = await Promise.all([
         fetch(boxUrl),
@@ -186,6 +192,7 @@ export default function App() {
       setBox(box);
       setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
       setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
+      setIsBoxLoading(false);
 
       const play = playRes;
       if (play) {
@@ -194,43 +201,66 @@ export default function App() {
         setLastAction(last);
         setPlayByPlay(play);
       }
+      setIsPlayLoading(false);
     } catch (err) {
       console.error('Error in getBoth:', err);
+      setIsBoxLoading(false);
+      setIsPlayLoading(false);
     }
   };
 
   const getPlayByPlay = async (url) => {
-    const res = await fetch(url);
-    if (!res.ok) {
-      if (res.status === 404) {
-        setPlayByPlay([]);  
-        setLastAction(null);
-        setNumQs(4);
-        return;
+    if (!playByPlay.length) {
+      setIsPlayLoading(true);
+    }
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        if (res.status === 404) {
+          setPlayByPlay([]);  
+          setLastAction(null);
+          setNumQs(4);
+          return;
+        }
+        throw new Error(`S3 fetch failed: ${res.status}`);
       }
-      throw new Error(`S3 fetch failed: ${res.status}`);
+      let play = await res.json()
+
+      const last = play[play.length - 1] || null;
+      setNumQs(last?.period > 4 ? last?.period : 4);
+      setLastAction(last);
+
+
+      if (last?.status?.trim().startsWith('Final')) {
+        await getBox(`${PREFIX}/data/boxData/${gameId}.json.gz`);
+        ws?.close();
+      }
+      setPlayByPlay(play);
+    } catch (err) {
+      console.error('Error in getPlayByPlay:', err);
+    } finally {
+      setIsPlayLoading(false);
     }
-    let play = await res.json()
-
-    const last = play[play.length - 1] || null;
-    setNumQs(last?.period > 4 ? last?.period : 4);
-    setLastAction(last);
-
-
-    if (last?.status?.trim().startsWith('Final')) {
-      await getBox(`${PREFIX}/data/boxData/${gameId}.json.gz`);
-      ws?.close();
-    }
-    setPlayByPlay(play);
   }
 
   const getBox = async (url) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
-    const box = await res.json();
-    setBox(box);
-    setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
-    setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
+    if (!box || Object.keys(box).length === 0) {
+      setIsBoxLoading(true);
+    }
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
+      const box = await res.json();
+      setBox(box);
+      setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
+      setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
+    } catch (err) {
+      console.error('Error in getBox:', err);
+    } finally {
+      setIsBoxLoading(false);
+    }
   }
 
   const changeDate = (e) => {
@@ -244,6 +274,8 @@ export default function App() {
   }
 
   const changeGame = (id) => {
+    setIsBoxLoading(true);
+    setIsPlayLoading(true);
     setGameId(id);
     updateQueryParams(date, id);
   }
@@ -312,8 +344,14 @@ export default function App() {
     const observer = new ResizeObserver(entries => {
       setPlayByPlaySectionWidth(entries[0].contentRect.width)
     })
-    observer.observe(playByPlaySectionRef.current)
-    return () => ref.current && observer.unobserve(ref.current)
+    const element = playByPlaySectionRef.current;
+    if (!element) {
+      return () => {};
+    }
+    observer.observe(element);
+    return () => {
+      observer.unobserve(element);
+    }
   }, []);
 
 
@@ -325,6 +363,8 @@ export default function App() {
     name: box?.homeTeam?.teamName || 'Away Team',
     abr: box?.homeTeam?.teamTricode || '',
   };
+
+  const isGameDataLoading = isBoxLoading || isPlayLoading;
 
   return (
     <div className='topLevel'>
@@ -340,7 +380,8 @@ export default function App() {
         awayTeam={box?.awayTeam?.teamTricode}
         score={scoreTimeline[scoreTimeline.length - 1]}
         date={box.gameEt}
-        changeDate={changeDate}></Score>
+        changeDate={changeDate}
+        isLoading={isGameDataLoading}></Score>
       <div className='playByPlaySection' ref = {playByPlaySectionRef}>
         <Play
           awayTeamNames={awayTeamName}
@@ -353,10 +394,11 @@ export default function App() {
           homePlayerTimeline={homePlayerTimeline}
           numQs={numQs}
           sectionWidth={playByPlaySectionWidth}
-          lastAction={lastAction}></Play>
+          lastAction={lastAction}
+          isLoading={isPlayLoading}></Play>
         <StatButtons statOn={statOn} changeStatOn={changeStatOn}></StatButtons>
       </div>
-      <Boxscore box={box}></Boxscore>
+      <Boxscore box={box} isLoading={isBoxLoading}></Boxscore>
     </div>
   );
 }

@@ -88,4 +88,14 @@
     font-weight: 500;
     font-size: 10px;
   }
+
+  .loadingIndicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c6d6f;
+    font-weight: 500;
+    gap: 10px;
+    min-height: 300px;
+  }
 }

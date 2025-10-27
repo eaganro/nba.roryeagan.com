@@ -1,9 +1,10 @@
+import CircularProgress from '@mui/material/CircularProgress';
 import './Boxscore.scss';
 import processTeamStats from './processTeamStats';
 import { useState, useEffect } from 'react';
 
 
-export default function Boxscore({ box }) {
+export default function Boxscore({ box, isLoading }) {
   const [showMore, setShowMore] = useState(false);
   const [scrollPos, setScrollPos] = useState(100);
   const [width, setWidth] = useState(window.innerWidth);
@@ -22,8 +23,17 @@ export default function Boxscore({ box }) {
 
   return (
     <div className='box'>
-      {awayBox}
-      {homeBox}
+      {isLoading ? (
+        <div className='loadingIndicator'>
+          <CircularProgress size={24} thickness={5} />
+          <span>Loading box score...</span>
+        </div>
+      ) : (
+        <>
+          {awayBox}
+          {homeBox}
+        </>
+      )}
     </div>
   );
 }
