@@ -1,5 +1,5 @@
 import './StatButtons.scss';
-export default function StatButtons({ statOn, changeStatOn }) {
+export default function StatButtons({ statOn, changeStatOn, isLoading, statusMessage }) {
 
   const color = {
     point: 'gold',
@@ -13,12 +13,12 @@ export default function StatButtons({ statOn, changeStatOn }) {
   };
 
   const buttons = Object.keys(color).map((k, i) => {
-    return (
+    return !isLoading && !statusMessage ? (
       <div className='buttonGroup' key={k}>
         <div className={`statCheck ${k} ${statOn[i] ? '' : 'off'}`} onClick={() => changeStatOn(i)}></div>
         <span>{k}</span>
       </div>
-    );
+    ) : (<div></div>);
   });
 
   return (

@@ -15,6 +15,7 @@ import { wsLocation, PREFIX } from '../../environment';
 import './App.scss';
 
 const MAX_AUTO_LOOKBACK_DAYS = 10;
+const GAME_NOT_STARTED_MESSAGE = 'Game data is not available yet. The game has not started.';
 
 const formatDateString = (dateObj) => {
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -110,6 +111,7 @@ export default function App() {
   const [scoreTimeline, setScoreTimeline] = useState([]);
   const [homePlayerTimeline, setHomePlayerTimeline] = useState([]);
   const [awayPlayerTimeline, setAwayPlayerTimeline] = useState([]);
+  const [gameStatusMessage, setGameStatusMessage] = useState(null);
 
   const [isBoxLoading, setIsBoxLoading] = useState(true);
   const [isPlayLoading, setIsPlayLoading] = useState(true);
@@ -329,21 +331,26 @@ export default function App() {
 
     setIsBoxLoading(true);
     setIsPlayLoading(true);
+    setGameStatusMessage(null);
 
     try {
-      const [boxRes, playRes] = await Promise.all([
+      const [boxRes, playResRaw] = await Promise.all([
         fetch(boxUrl),
-        fetch(playUrl).then(res => {
-          if (!res.ok && res.status === 404) {
-            setPlayByPlay([]);
-            setLastAction(null);
-            setNumQs(4);
-            return null;
-          }
-          if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
-          return res.json();
-        }),
+        fetch(playUrl),
       ]);
+
+      if (boxRes.status === 403 || boxRes.status === 404) {
+        setGameStatusMessage(GAME_NOT_STARTED_MESSAGE);
+        setBox({});
+        setAwayTeamId(null);
+        setHomeTeamId(null);
+        setPlayByPlay([]);
+        setLastAction(null);
+        setNumQs(4);
+        setIsBoxLoading(false);
+        setIsPlayLoading(false);
+        return;
+      }
 
       if (!boxRes.ok) throw new Error(`S3 fetch failed: ${boxRes.status}`);
       const box = await boxRes.json();
@@ -352,7 +359,25 @@ export default function App() {
       setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
       setIsBoxLoading(false);
 
-      const play = playRes;
+      if (playResRaw.status === 403) {
+        setGameStatusMessage(GAME_NOT_STARTED_MESSAGE);
+        setPlayByPlay([]);
+        setLastAction(null);
+        setNumQs(4);
+        setIsPlayLoading(false);
+        return;
+      }
+
+      if (playResRaw.status === 404) {
+        setPlayByPlay([]);
+        setLastAction(null);
+        setNumQs(4);
+        setIsPlayLoading(false);
+        return;
+      }
+
+      if (!playResRaw.ok) throw new Error(`S3 fetch failed: ${playResRaw.status}`);
+      const play = await playResRaw.json();
       if (play) {
         const last = play[play.length - 1] || null;
         setNumQs(last?.period > 4 ? last?.period : 4);
@@ -375,6 +400,13 @@ export default function App() {
     try {
       const res = await fetch(url);
       if (!res.ok) {
+        if (res.status === 403) {
+          setGameStatusMessage(GAME_NOT_STARTED_MESSAGE);
+          setPlayByPlay([]);
+          setLastAction(null);
+          setNumQs(4);
+          return;
+        }
         if (res.status === 404) {
           setPlayByPlay([]);  
           setLastAction(null);
@@ -385,6 +417,7 @@ export default function App() {
       }
       let play = await res.json()
 
+      setGameStatusMessage(null);
       const last = play[play.length - 1] || null;
       setNumQs(last?.period > 4 ? last?.period : 4);
       setLastAction(last);
@@ -409,8 +442,16 @@ export default function App() {
 
     try {
       const res = await fetch(url);
+      if (res.status === 403 || res.status === 404) {
+        setGameStatusMessage(GAME_NOT_STARTED_MESSAGE);
+        setBox({});
+        setAwayTeamId(null);
+        setHomeTeamId(null);
+        return;
+      }
       if (!res.ok) throw new Error(`S3 fetch failed: ${res.status}`);
       const box = await res.json();
+      setGameStatusMessage(null);
       setBox(box);
       setAwayTeamId(box.awayTeamId ?? box.awayTeam.teamId);
       setHomeTeamId(box.homeTeamId ?? box.homeTeam.teamId);
@@ -426,6 +467,7 @@ export default function App() {
     if (newDate === date) {
       return;
     }
+    // setGameStatusMessage(null);
     autoSelectActiveRef.current = false;
     setShouldAutoSelectGame(false);
     setIsScheduleLoading(true);
@@ -438,6 +480,7 @@ export default function App() {
     setShouldAutoSelectGame(false);
     setIsBoxLoading(true);
     setIsPlayLoading(true);
+    setGameStatusMessage(null);
     setGameId(id);
     updateQueryParams(date, id);
   }
@@ -543,7 +586,8 @@ export default function App() {
         score={scoreTimeline[scoreTimeline.length - 1]}
         date={box.gameEt}
         changeDate={changeDate}
-        isLoading={isGameDataLoading}></Score>
+        isLoading={isGameDataLoading}
+        statusMessage={gameStatusMessage}></Score>
       <div className='playByPlaySection' ref = {playByPlaySectionRef}>
         <Play
           awayTeamNames={awayTeamName}
@@ -557,10 +601,15 @@ export default function App() {
           numQs={numQs}
           sectionWidth={playByPlaySectionWidth}
           lastAction={lastAction}
-          isLoading={isPlayLoading}></Play>
-        <StatButtons statOn={statOn} changeStatOn={changeStatOn}></StatButtons>
+          isLoading={isPlayLoading}
+          statusMessage={gameStatusMessage}></Play>
+        <StatButtons
+          statOn={statOn}
+          changeStatOn={changeStatOn}
+          isLoading={isPlayLoading}
+          statusMessage={gameStatusMessage}></StatButtons>
       </div>
-      <Boxscore box={box} isLoading={isBoxLoading}></Boxscore>
+      <Boxscore box={box} isLoading={isBoxLoading} statusMessage={gameStatusMessage}></Boxscore>
     </div>
   );
 }

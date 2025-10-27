@@ -2,7 +2,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import './Score.scss';
 import { PREFIX } from '../../environment';
 
-export default function Score({ homeTeam, awayTeam, score, date, changeDate, isLoading }) {
+export default function Score({ homeTeam, awayTeam, score, date, changeDate, isLoading, statusMessage }) {
 
   if (isLoading) {
     return (
@@ -53,6 +53,9 @@ export default function Score({ homeTeam, awayTeam, score, date, changeDate, isL
         )}
         <div>{score ? score.home : '--'}</div>
       </div>
+      {/* {statusMessage && (
+        <div className='statusMessage'>{statusMessage}</div>
+      )} */}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction, isLoading }) {
+export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction, isLoading, statusMessage }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -92,6 +92,13 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
           <CircularProgress size={24} thickness={5} />
           <span>Loading play-by-play...</span>
         </div>
+      </div>
+    );
+  }
+  if (statusMessage) {
+    return (
+      <div className='play'>
+        <div className='statusMessage'>{statusMessage}</div>
       </div>
     );
   }

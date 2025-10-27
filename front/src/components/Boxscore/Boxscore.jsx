@@ -4,7 +4,7 @@ import processTeamStats from './processTeamStats';
 import { useState, useEffect } from 'react';
 
 
-export default function Boxscore({ box, isLoading }) {
+export default function Boxscore({ box, isLoading, statusMessage }) {
   const [showMore, setShowMore] = useState(false);
   const [scrollPos, setScrollPos] = useState(100);
   const [width, setWidth] = useState(window.innerWidth);
@@ -28,6 +28,8 @@ export default function Boxscore({ box, isLoading }) {
           <CircularProgress size={24} thickness={5} />
           <span>Loading box score...</span>
         </div>
+      ) : statusMessage ? (
+        <div className='statusMessage'>{statusMessage}</div>
       ) : (
         <>
           {awayBox}
