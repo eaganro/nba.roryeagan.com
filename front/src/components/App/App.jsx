@@ -13,6 +13,65 @@ import StatButtons from '../StatButtons/StatButtons';
 import { wsLocation, PREFIX } from '../../environment';
 
 import './App.scss';
+
+const MAX_AUTO_LOOKBACK_DAYS = 10;
+
+const formatDateString = (dateObj) => {
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${dateObj.getFullYear()}-${month}-${day}`;
+};
+
+const shiftDateString = (dateString, offset) => {
+  if (!dateString) {
+    return null;
+  }
+  const base = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(base.getTime())) {
+    return null;
+  }
+  base.setDate(base.getDate() + offset);
+  return formatDateString(base);
+};
+
+const compareGamesForSelection = (a, b) => {
+  const statusA = (a?.status || '').trim();
+  const statusB = (b?.status || '').trim();
+  const timeA = new Date(a?.starttime || '').getTime();
+  const timeB = new Date(b?.starttime || '').getTime();
+  const safeTimeA = Number.isFinite(timeA) ? timeA : 0;
+  const safeTimeB = Number.isFinite(timeB) ? timeB : 0;
+
+  const finalA = statusA.startsWith('Final');
+  const finalB = statusB.startsWith('Final');
+
+  if (finalA && finalB) {
+    if (safeTimeA < safeTimeB) return -1;
+    if (safeTimeA > safeTimeB) return 1;
+    if ((a?.hometeam || '') > (b?.hometeam || '')) return 1;
+    if ((a?.hometeam || '') < (b?.hometeam || '')) return -1;
+    return 0;
+  }
+  if (finalA) return 1;
+  if (finalB) return -1;
+
+  if (safeTimeA < safeTimeB) return -1;
+  if (safeTimeA > safeTimeB) return 1;
+  if ((a?.hometeam || '') > (b?.hometeam || '')) return 1;
+  if ((a?.hometeam || '') < (b?.hometeam || '')) return -1;
+  return 0;
+};
+
+const sortGamesForSelection = (games = []) => [...games].sort(compareGamesForSelection);
+
+const findFirstStartedOrCompletedGame = (games = [], alreadySorted = false) => {
+  const list = alreadySorted ? games : sortGamesForSelection(games);
+  return list.find((game) => {
+    const status = (game?.status || '').trim();
+    return status && !status.endsWith('ET');
+  }) || null;
+};
+
 export default function App() {
 
   let today = new Date();
@@ -30,7 +89,7 @@ export default function App() {
   // Read optional query params on load
   const initialParams = new URLSearchParams(window.location.search);
   const initialDate = initialParams.get('date') || val;
-  const initialGameId = initialParams.get('gameid') || "0042400212";
+  const initialGameIdParam = initialParams.get('gameid');
 
   const [date, setDate] = useState(initialDate);
   const [games, setGames] = useState([]);
@@ -38,7 +97,8 @@ export default function App() {
   const [box, setBox] = useState({});
   const [playByPlay, setPlayByPlay] = useState([]);
   // const [gameId, setGameId] = useState("0022300216");
-  const [gameId, setGameId] = useState(initialGameId);
+  const [gameId, setGameId] = useState(initialGameIdParam || null);
+  const [shouldAutoSelectGame, setShouldAutoSelectGame] = useState(!initialGameIdParam);
   const [awayTeamId, setAwayTeamId] = useState(null);
   const [homeTeamId, setHomeTeamId] = useState(null);
 
@@ -70,6 +130,13 @@ export default function App() {
 
   const [ws, setWs] = useState(null);
 
+  const latestDateRef = useRef(date);
+  const latestGameIdRef = useRef(gameId);
+  const autoSelectActiveRef = useRef(!initialGameIdParam);
+  const autoSelectVisitedDatesRef = useRef(new Set(initialDate ? [initialDate] : []));
+  const autoSelectAttemptsRef = useRef(0);
+  const attemptAutoSelectGameRef = useRef(() => {});
+
   const connect = () => {
     if (ws?.readyState === WebSocket.OPEN || ws?.readyState === WebSocket.CONNECTING) {
       return;
@@ -80,7 +147,9 @@ export default function App() {
 
     newWs.onopen = () => {
       console.log('Connected to WebSocket');
-      newWs.send(JSON.stringify({ action: 'followGame', gameId }));
+      if (gameId) {
+        newWs.send(JSON.stringify({ action: 'followGame', gameId }));
+      }
       newWs.send(JSON.stringify({ action: 'followDate', date }));
     };
 
@@ -103,6 +172,7 @@ export default function App() {
         } else if (msg.type === "date") {
           setGames(msg.data);
           setIsScheduleLoading(false);
+          attemptAutoSelectGameRef.current(msg.data, msg.date);
         }
       } catch (err) {
         console.error("Error handling WS message", msg, err);
@@ -119,6 +189,77 @@ export default function App() {
     connect();
     // return () => ws?.close();
   }, []);
+
+  useEffect(() => {
+    latestDateRef.current = date;
+  }, [date]);
+
+  useEffect(() => {
+    latestGameIdRef.current = gameId;
+  }, [gameId]);
+
+  useEffect(() => {
+    autoSelectActiveRef.current = shouldAutoSelectGame;
+  }, [shouldAutoSelectGame]);
+
+  attemptAutoSelectGameRef.current = (incomingGames, scheduleDate) => {
+    const gamesList = Array.isArray(incomingGames) ? incomingGames : [];
+    const effectiveDate = scheduleDate || latestDateRef.current;
+    if (effectiveDate) {
+      autoSelectVisitedDatesRef.current.add(effectiveDate);
+    }
+
+    if (!autoSelectActiveRef.current) {
+      return;
+    }
+
+    const sortedGames = sortGamesForSelection(gamesList);
+    const firstStartedOrCompleted = findFirstStartedOrCompletedGame(sortedGames, true);
+    if (firstStartedOrCompleted) {
+      autoSelectActiveRef.current = false;
+      setShouldAutoSelectGame(false);
+      if (latestGameIdRef.current !== firstStartedOrCompleted.id) {
+        setGameId(firstStartedOrCompleted.id);
+      }
+      return;
+    }
+
+    if (!effectiveDate) {
+      autoSelectActiveRef.current = false;
+      setShouldAutoSelectGame(false);
+      const fallbackGame = sortedGames[0];
+      if (!latestGameIdRef.current && fallbackGame) {
+        setGameId(fallbackGame.id);
+      }
+      return;
+    }
+
+    if (autoSelectAttemptsRef.current >= MAX_AUTO_LOOKBACK_DAYS) {
+      autoSelectActiveRef.current = false;
+      setShouldAutoSelectGame(false);
+      const fallbackGame = sortedGames[0];
+      if (!latestGameIdRef.current && fallbackGame) {
+        setGameId(fallbackGame.id);
+      }
+      return;
+    }
+
+    const previousDate = shiftDateString(effectiveDate, -1);
+    if (!previousDate || autoSelectVisitedDatesRef.current.has(previousDate)) {
+      autoSelectActiveRef.current = false;
+      setShouldAutoSelectGame(false);
+      const fallbackGame = sortedGames[0];
+      if (!latestGameIdRef.current && fallbackGame) {
+        setGameId(fallbackGame.id);
+      }
+      return;
+    }
+
+    autoSelectAttemptsRef.current += 1;
+    autoSelectVisitedDatesRef.current.add(previousDate);
+    setIsScheduleLoading(true);
+    setDate(previousDate);
+  };
 
   useEffect(() => {
     latestBoxRef.current = box;
@@ -162,6 +303,11 @@ export default function App() {
   }, [date]);
 
   useEffect(() => {
+    if (!gameId) {
+      updateQueryParams(date, gameId);
+      return;
+    }
+
     if (ws?.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ action: 'followGame', gameId }));
     } else if (ws !== null) {
@@ -280,12 +426,16 @@ export default function App() {
     if (newDate === date) {
       return;
     }
+    autoSelectActiveRef.current = false;
+    setShouldAutoSelectGame(false);
     setIsScheduleLoading(true);
     setDate(newDate);
     updateQueryParams(newDate, gameId);
   }
 
   const changeGame = (id) => {
+    autoSelectActiveRef.current = false;
+    setShouldAutoSelectGame(false);
     setIsBoxLoading(true);
     setIsPlayLoading(true);
     setGameId(id);
