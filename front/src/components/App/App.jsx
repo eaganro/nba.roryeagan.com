@@ -483,6 +483,10 @@ export default function App() {
   const changeGame = (id) => {
     autoSelectActiveRef.current = false;
     setShouldAutoSelectGame(false);
+    if (!id || id === gameId) {
+      updateQueryParams(date, id || gameId);
+      return;
+    }
     setIsBoxLoading(true);
     setIsPlayLoading(true);
     setGameStatusMessage(null);
