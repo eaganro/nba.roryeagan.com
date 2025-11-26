@@ -232,6 +232,22 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     timeline.unshift(<line key={`q${q}`} x1={x1} y1={10} x2={x2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
   }
 
+  // Quarter labels (Q1, Q2, Q3, Q4, O1, O2, etc.)
+  const quarterLabelStyle = { fontSize: '10px', fill: '#666', fontWeight: 500 };
+  const otWidth = (5/12) * qWidth; // overtime period width
+  
+  // Q1 - Q4 labels centered in each quarter
+  timeline.unshift(<text key="label-q1" x={leftMargin + qWidth * 0.5} y={8} textAnchor="middle" style={quarterLabelStyle}>Q1</text>);
+  timeline.unshift(<text key="label-q2" x={leftMargin + qWidth * 1.5} y={8} textAnchor="middle" style={quarterLabelStyle}>Q2</text>);
+  timeline.unshift(<text key="label-q3" x={leftMargin + qWidth * 2.5} y={8} textAnchor="middle" style={quarterLabelStyle}>Q3</text>);
+  timeline.unshift(<text key="label-q4" x={leftMargin + qWidth * 3.5} y={8} textAnchor="middle" style={quarterLabelStyle}>Q4</text>);
+  
+  // Overtime labels (O1, O2, etc.)
+  for (let ot = 1; ot <= numQs - 4; ot += 1) {
+    const otCenterX = leftMargin + qWidth * 4 + otWidth * (ot - 0.5);
+    timeline.unshift(<text key={`label-o${ot}`} x={otCenterX} y={8} textAnchor="middle" style={quarterLabelStyle}>O{ot}</text>);
+  }
+
 
   let numLines = 0;
   let lineJump = 0;
