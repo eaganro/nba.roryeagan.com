@@ -5,6 +5,13 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   build: {
+    minify: 'terser', 
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     outDir: resolve(__dirname, '../server/public/js'),
     emptyOutDir: false,
     assetsDir: '.',

@@ -38,3 +38,7 @@ packages/react-devtools-shell/dist
 packages/react-devtools-timeline/dist
 
 src/environment.js
+
+.env
+.env.development
+.env.production
