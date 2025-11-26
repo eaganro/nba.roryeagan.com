@@ -382,8 +382,8 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     }
   };
 
-  let awayColor = awayTeamNames.abr ? rgbToRgba(teamColor[awayTeamNames.abr], 0.3) : '';
-  let homeColor = homeTeamNames.abr ? rgbToRgba(teamColor[homeTeamNames.abr], 0.3) : '';
+  let awayColor = awayTeamNames.abr ? rgbToRgba(teamColor[awayTeamNames.abr], 0.15) : '';
+  let homeColor = homeTeamNames.abr ? rgbToRgba(teamColor[homeTeamNames.abr], 0.15) : '';
 
   // Calculate preferred tooltip placement (left/right, above/below) and clamp within play area
   const tooltipWidth = 300; // matches CSS width
