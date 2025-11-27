@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import { timeToSeconds, formatClock, formatPeriod } from '../../helpers/utils';
+import { getEventType } from '../../helpers/eventStyles.jsx';
 // import getWindowDimensions from '../hooks/windowDimensions';
 
 import Player from './Player/Player';
@@ -318,8 +319,60 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     // Clamp within visible timeline for selection/indicator
     let pos = Math.max(0, Math.min(rawPos, width));
 
+    // Check if hovering directly over a specific shape FIRST
+    // Look for data-action-number on target or parent (for grouped elements like 3PT)
+    let hoveredActionId = null;
+    let checkEl = targetEl;
+    while (checkEl && hoveredActionId === null) {
+      if (checkEl.dataset && checkEl.dataset.actionNumber) {
+        hoveredActionId = checkEl.dataset.actionNumber;
+      }
+      // Stop at SVG boundary
+      if (checkEl.tagName === 'svg') break;
+      checkEl = checkEl.parentElement;
+    }
+    
+    // If hovering directly over a shape, use that action
+    if (hoveredActionId !== null) {
+      // Find the action - actionNumber can be a number or string (e.g. "376a" for assists)
+      const hoveredAction = allActions.find(action => 
+        String(action.actionNumber) === hoveredActionId
+      );
+      
+      if (hoveredAction) {
+        const eventType = getEventType(hoveredAction.description);
+        
+        let hoverActions;
+        let hoverActionIds;
+        
+        // Points overlap visually, so show all points at this time
+        if (eventType === 'point') {
+          const sameTimeActions = allActions.filter(action => 
+            action.clock === hoveredAction.clock && action.period === hoveredAction.period
+          );
+          hoverActions = sameTimeActions.filter(action => getEventType(action.description) === 'point');
+          hoverActionIds = hoverActions.map(action => action.actionNumber);
+        } else {
+          // Show only the specific hovered action
+          hoverActions = [hoveredAction];
+          hoverActionIds = [hoveredAction.actionNumber];
+        }
+        
+        // Calculate position based on the hovered action's time
+        let actionPos = (((hoveredAction.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(hoveredAction.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+        if (hoveredAction.period > 4) {
+          actionPos = ((4 * 12 * 60 + 5 * (hoveredAction.period - 4) * 60 - timeToSeconds(hoveredAction.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+        }
+        
+        setHighlightActionIds(hoverActionIds);
+        setDescriptionArray(hoverActions);
+        setMouseLinePos(actionPos + leftMargin);
+        return;
+      }
+    }
+    
+    // Fallback: position-based hover (when not directly over a shape)
     let a = 0;
-
     let goneOver = false;
     let sameTime = 1;
     for (let i = 1; i < allActions.length && goneOver === false; i += 1) {
@@ -338,12 +391,15 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
         a = i;
       }
     }
+    
+    // Collect all actions at this time
     const hoverActions = [];
     const hoverActionIds = [];
     for (let i = 0; i < sameTime; i += 1) {
       hoverActions.push(allActions[a - i]);
       hoverActionIds.push(allActions[a - i].actionNumber);
     }
+    
     setHighlightActionIds(hoverActionIds);
     setDescriptionArray(hoverActions);
     setMouseLinePos(pos + leftMargin);

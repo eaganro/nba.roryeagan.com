@@ -25,7 +25,7 @@ export default function Player({ actions, timeline, name, width, rightMargin = 0
     const isHighlighted = highlight.includes(a.actionNumber);
     const size = isHighlighted ? 8 : 4;
     
-    return renderEventShape(eventType, pos, 14, size, `action-${a.actionNumber}`, is3PT);
+    return renderEventShape(eventType, pos, 14, size, `action-${a.actionNumber}`, is3PT, a.actionNumber);
   });
 
   const playTimeLines = timeline?.filter(t => {

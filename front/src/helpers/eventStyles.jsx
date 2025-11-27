@@ -73,21 +73,29 @@ export function getEventType(description) {
  * @param {number} size - Size of the shape (radius-like)
  * @param {string} key - React key
  * @param {boolean} is3PT - Whether this is a 3-point shot (adds inner marker)
+ * @param {number} actionNumber - Optional action number for hover detection
  */
-export function renderEventShape(eventType, cx, cy, size, key, is3PT = false) {
+export function renderEventShape(eventType, cx, cy, size, key, is3PT = false, actionNumber = null) {
   const config = EVENT_TYPES[eventType];
   if (!config) return null;
   
   const { color, shape } = config;
   const s = size; // shorthand
   
+  // Data attributes for hover detection
+  const dataAttrs = actionNumber !== null ? {
+    'data-action-number': actionNumber,
+    'data-event-type': eventType,
+    style: { cursor: 'pointer' }
+  } : {};
+  
   // Helper to create a group with optional 3PT marker
   const wrapWith3PT = (mainShape) => {
     if (!is3PT) return mainShape;
     return (
-      <g key={key}>
+      <g key={key} {...dataAttrs}>
         {mainShape}
-        <circle cx={cx} cy={cy} r={s * 0.6} fill="#DC2626" />
+        <circle cx={cx} cy={cy} r={s * 0.6} fill="#DC2626" style={{ pointerEvents: 'none' }} />
       </g>
     );
   };
@@ -95,9 +103,8 @@ export function renderEventShape(eventType, cx, cy, size, key, is3PT = false) {
   switch (shape) {
     case 'circle': {
       // Simple circle
-      return wrapWith3PT(
-        <circle key={key} cx={cx} cy={cy} r={s} fill={color} />
-      );
+      const el = <circle key={key} cx={cx} cy={cy} r={s} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
     case 'cross': {
@@ -118,46 +125,41 @@ export function renderEventShape(eventType, cx, cy, size, key, is3PT = false) {
         L ${cx - s + t} ${cy - s} 
         Z
       `;
-      return wrapWith3PT(
-        <path key={key} d={path} fill={color} />
-      );
+      const el = <path key={key} d={path} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
     case 'diamond': {
       // Rotated square (diamond)
       const points = `${cx},${cy - s} ${cx + s},${cy} ${cx},${cy + s} ${cx - s},${cy}`;
-      return wrapWith3PT(
-        <polygon key={key} points={points} fill={color} />
-      );
+      const el = <polygon key={key} points={points} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
     case 'chevron': {
       // Filled right-pointing arrow/triangle
       const points = `${cx - s * 0.6},${cy - s} ${cx + s},${cy} ${cx - s * 0.6},${cy + s}`;
-      return wrapWith3PT(
-        <polygon key={key} points={points} fill={color} />
-      );
+      const el = <polygon key={key} points={points} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
     case 'triangleDown': {
       // Downward pointing triangle
       const points = `${cx},${cy + s} ${cx - s},${cy - s * 0.7} ${cx + s},${cy - s * 0.7}`;
-      return wrapWith3PT(
-        <polygon key={key} points={points} fill={color} />
-      );
+      const el = <polygon key={key} points={points} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
     case 'triangleUp': {
       // Upward pointing triangle
       const points = `${cx},${cy - s} ${cx - s},${cy + s * 0.7} ${cx + s},${cy + s * 0.7}`;
-      return wrapWith3PT(
-        <polygon key={key} points={points} fill={color} />
-      );
+      const el = <polygon key={key} points={points} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
     case 'square': {
       // Simple square
-      return wrapWith3PT(
+      const el = (
         <rect 
           key={key} 
           x={cx - s * 0.8} 
@@ -165,8 +167,10 @@ export function renderEventShape(eventType, cx, cy, size, key, is3PT = false) {
           width={s * 1.6} 
           height={s * 1.6} 
           fill={color}
+          {...(is3PT ? {} : dataAttrs)}
         />
       );
+      return wrapWith3PT(el);
     }
     
     case 'hexagon': {
@@ -176,15 +180,14 @@ export function renderEventShape(eventType, cx, cy, size, key, is3PT = false) {
         const angle = (i * 60 - 90) * (Math.PI / 180);
         points.push(`${cx + s * Math.cos(angle)},${cy + s * Math.sin(angle)}`);
       }
-      return wrapWith3PT(
-        <polygon key={key} points={points.join(' ')} fill={color} />
-      );
+      const el = <polygon key={key} points={points.join(' ')} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
     }
     
-    default:
-      return wrapWith3PT(
-        <circle key={key} cx={cx} cy={cy} r={s} fill={color} />
-      );
+    default: {
+      const el = <circle key={key} cx={cx} cy={cy} r={s} fill={color} {...(is3PT ? {} : dataAttrs)} />;
+      return wrapWith3PT(el);
+    }
   }
 }
 
