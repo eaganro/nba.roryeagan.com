@@ -341,16 +341,22 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
       
       if (hoveredAction) {
         const eventType = getEventType(hoveredAction.description);
+        const isFreeThrow = hoveredAction.description.includes('Free Throw') || 
+                            hoveredAction.description.includes('FT');
         
         let hoverActions;
         let hoverActionIds;
         
-        // Points overlap visually, so show all points at this time
-        if (eventType === 'point') {
+        // Points and free throws overlap visually, so show all scoring actions at this time
+        if (eventType === 'point' || isFreeThrow) {
           const sameTimeActions = allActions.filter(action => 
             action.clock === hoveredAction.clock && action.period === hoveredAction.period
           );
-          hoverActions = sameTimeActions.filter(action => getEventType(action.description) === 'point');
+          // Show all points and free throws at this time
+          hoverActions = sameTimeActions.filter(action => {
+            const actionIsFT = action.description.includes('Free Throw') || action.description.includes('FT');
+            return getEventType(action.description) === 'point' || actionIsFT;
+          });
           hoverActionIds = hoverActions.map(action => action.actionNumber);
         } else {
           // Show only the specific hovered action

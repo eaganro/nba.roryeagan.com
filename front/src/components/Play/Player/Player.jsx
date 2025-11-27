@@ -12,21 +12,33 @@ export default function Player({ actions, timeline, name, width, rightMargin = 0
     qWidth = width * (12 / (12 * 4 + 5 * (numQs - 4)))
   }
 
-  let dots = actions
-  .filter(a => a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !==  'Violation')
-  .map(a => {
-    let pos = (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
-    if (a.period > 4) {
-      pos = ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
-    }
-    
-    const eventType = getEventType(a.description);
-    const is3PT = a.description.includes('3PT');
-    const isHighlighted = highlight.includes(a.actionNumber);
-    const size = isHighlighted ? 8 : 4;
-    
-    return renderEventShape(eventType, pos, 14, size, `action-${a.actionNumber}`, is3PT, a.actionNumber);
-  });
+  const filteredActions = actions
+    .filter(a => a.actionType !== 'Substitution' && a.actionType !== 'Jump Ball' && a.actionType !== 'Violation');
+  
+  // Render non-highlighted dots first, then highlighted dots on top
+  const nonHighlightedDots = filteredActions
+    .filter(a => !highlight.includes(a.actionNumber))
+    .map(a => {
+      let pos = (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      if (a.period > 4) {
+        pos = ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      }
+      const eventType = getEventType(a.description);
+      const is3PT = a.description.includes('3PT');
+      return renderEventShape(eventType, pos, 14, 4, `action-${a.actionNumber}`, is3PT, a.actionNumber);
+    });
+  
+  const highlightedDots = filteredActions
+    .filter(a => highlight.includes(a.actionNumber))
+    .map(a => {
+      let pos = (((a.period - 1) * 12 * 60 + 12 * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      if (a.period > 4) {
+        pos = ((4 * 12 * 60 + 5 * (a.period - 4) * 60 - timeToSeconds(a.clock)) / (4 * 12 * 60)) * (qWidth * 4);
+      }
+      const eventType = getEventType(a.description);
+      const is3PT = a.description.includes('3PT');
+      return renderEventShape(eventType, pos, 14, 8, `action-${a.actionNumber}`, is3PT, a.actionNumber);
+    });
 
   const playTimeLines = timeline?.filter(t => {
     if (!t.end) {
@@ -53,7 +65,8 @@ export default function Player({ actions, timeline, name, width, rightMargin = 0
       <div className='playerName' style={{ width: 90 }}>{playerName}</div>
       <svg width={width + rightMargin} height="28" className='line' style={{left: leftMargin}}>
         {playTimeLines}
-        {dots}
+        {nonHighlightedDots}
+        {highlightedDots}
       </svg>
     </div>
   );
