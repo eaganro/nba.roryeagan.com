@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import { timeToSeconds, formatClock, formatPeriod } from '../../helpers/utils';
 import { getEventType, LegendShape } from '../../helpers/eventStyles.jsx';
-// import getWindowDimensions from '../hooks/windowDimensions';
+import { getMatchupColors, getSafeBackground } from '../../helpers/teamColors';
 
 import Player from './Player/Player';
 
@@ -27,38 +27,8 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
   const awayTeamName = awayTeamNames.name;
   const homeTeamName = homeTeamNames.name;
 
-  const teamColor = {
-    ATL: 'rgb(224 58 62)',
-    BKN: 'rgb(0 0 0)',
-    BOS: 'rgb(0 122 51)',
-    CHA: 'rgb(29 17 96)',
-    CHI: 'rgb(206 17 65)',
-    CLE: 'rgb(134 0 56)',
-    DAL: 'rgb(0 83 140)',
-    DEN: 'rgb(14 34 64)',
-    DET: 'rgb(200 16 46)',
-    GSW: 'rgb(29 66 138)',
-    HOU: 'rgb(206 17 65)',
-    IND: 'rgb(0 45 98)',
-    LAC: 'rgb(200 16 46)',
-    LAL: 'rgb(85 37 131)',
-    MEM: 'rgb(93 118 169)',
-    MIA: 'rgb(152 0 46)',
-    MIL: 'rgb(0 71 27)',
-    MIN: 'rgb(12 35 64)',
-    NOP: 'rgb(12 35 64)',
-    NYK: 'rgb(0 107 182)',
-    OKC: 'rgb(0 122 193)',
-    ORL: 'rgb(0 119 192)',
-    PHI: 'rgb(0 107 182)',
-    PHX: 'rgb(29 17 96)',
-    POR: 'rgb(224 58 62)',
-    SAC: 'rgb(90 45 129)',
-    SAS: 'rgb(196 206 212)',
-    TOR: 'rgb(206 17 65)',
-    UTA: 'rgb(0 43 92)',
-    WAS: 'rgb(0 43 92)',
-  };
+  // Get team colors, with away using secondary if colors clash with home
+  const teamColors = getMatchupColors(awayTeamNames.abr, homeTeamNames.abr);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -460,8 +430,8 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     }
   };
 
-  let awayColor = awayTeamNames.abr ? rgbToRgba(teamColor[awayTeamNames.abr], 0.15) : '';
-  let homeColor = homeTeamNames.abr ? rgbToRgba(teamColor[homeTeamNames.abr], 0.15) : '';
+  let awayColor = teamColors.away ? getSafeBackground(teamColors.away) : '';
+  let homeColor = teamColors.home ? getSafeBackground(teamColors.home) : '';
 
   // Calculate preferred tooltip placement (left/right, above/below) and clamp within play area
   const tooltipWidth = 300; // matches CSS width
@@ -584,11 +554,11 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
           <line x1={mouseLinePos} y1={10} x2={mouseLinePos} y2={590} style={{ stroke: 'grey', strokeWidth: 1 }} />
           : ''}
       </svg>
-      <div className="teamName" style={{color: teamColor[awayTeamNames?.abr]?.replaceAll(' ', ', ')}}>{awayTeamName}</div>
+      <div className="teamName" style={{color: teamColors.away}}>{awayTeamName}</div>
       <div className='teamSection'>
         {awayRows}
       </div>
-      <div className="teamName" style={{color: teamColor[homeTeamNames?.abr]?.replaceAll(' ', ', ')}}>{homeTeamName}</div>
+      <div className="teamName" style={{color: teamColors.home}}>{homeTeamName}</div>
       <div className='teamSection'>
         {homeRows}
       </div>
@@ -596,6 +566,3 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
   );
 }
 
-function rgbToRgba(rgb, a) {
-  return rgb.replaceAll(' ', ', ').replace('rgb', 'rgba').replace(')', `, ${a})`);
-}
