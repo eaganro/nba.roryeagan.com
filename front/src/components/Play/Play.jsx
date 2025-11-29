@@ -491,8 +491,12 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
                 {descriptionArray.map((a, index) => {
                   const eventType = getEventType(a.description);
                   const is3PT = a.description.includes('3PT');
+                  const actionTeamColor = a.teamTricode === awayTeamNames.abr 
+                    ? teamColors.away 
+                    : teamColors.home;
                   return (
                     <div key={index} className="action-item">
+                      <div className="jersey-tab" style={{ backgroundColor: actionTeamColor }} />
                       <span className="action-symbol">
                         {eventType ? (
                           <LegendShape eventType={eventType} size={10} is3PT={is3PT} />
@@ -525,8 +529,12 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
                 {descriptionArray.map((a, index) => {
                   const eventType = getEventType(a.description);
                   const is3PT = a.description.includes('3PT');
+                  const actionTeamColor = a.teamTricode === awayTeamNames.abr 
+                    ? teamColors.away 
+                    : teamColors.home;
                   return (
                     <div key={index} className="action-item">
+                      <div className="jersey-tab" style={{ backgroundColor: actionTeamColor }} />
                       <span className="action-symbol">
                         {eventType ? (
                           <LegendShape eventType={eventType} size={10} is3PT={is3PT} />
