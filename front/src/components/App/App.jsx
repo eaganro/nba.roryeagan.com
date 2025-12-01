@@ -131,8 +131,17 @@ export default function App() {
 
 
 
-  const [statOn, setStatOn] = useState([true, false, true, true, false, false, false, false]);
-  // const [statOn, setStatOn] = useState([true, true, true, true, true, true, true, true]);
+  const [statOn, setStatOn] = useState(() => {
+    const saved = localStorage.getItem('statOn');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [true, false, true, true, false, false, false, false];
+      }
+    }
+    return [true, false, true, true, false, false, false, false];
+  });
   const [numQs, setNumQs] = useState(4);
   const [lastAction, setLastAction] = useState(null);
   const [selectionRangeSecs, setSelectionRangeSecs] = useState(null);
@@ -331,6 +340,10 @@ export default function App() {
   useEffect(() => {
     processPlayData(playByPlay);
   }, [playByPlay, statOn]);
+
+  useEffect(() => {
+    localStorage.setItem('statOn', JSON.stringify(statOn));
+  }, [statOn]);
 
   const getBoth = async () => {
     const boxUrl  = `${PREFIX}/data/boxData/${gameId}.json.gz`;
