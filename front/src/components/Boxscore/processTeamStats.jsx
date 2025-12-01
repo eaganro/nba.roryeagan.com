@@ -16,7 +16,6 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
     freeThrowsMade: 0, freeThrowsAttempted: 0, reboundsOffensive: 0, reboundsDefensive: 0, reboundsTotal: 0,
     assists: 0, steals: 0, blocks: 0, turnovers: 0, foulsPersonal: 0, points: 0, plusMinusPoints:0 };
 
-  let leftCol = [<div key="stat-heading-player" className="statHeadings"><span>PLAYER</span></div>];
   let teamBox = team.players.filter(p => {
     let minutes = p.statistics.minutes;
     if (!minutes) return false;
@@ -44,21 +43,21 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
     if (minutes.includes('PT')) {
       minutes = minutes.slice(2, -4).replace('M', ':');
     }
-    leftCol.push(<div key={`player-name-${p.personId}`} className={i % 2 === 0 ? "stat even" : "stat odd"}><span className="playerNameCol">{p.firstName} {p.familyName}</span></div>)
     return (
       <div key={p.personId} className={ "rowGrid stat " + (i % 2 === 0 ? "even" : "odd") }>
+        <span className="playerNameCol">{p.firstName} {p.familyName}</span>
         <span>{minutes}</span>
-        <span>{p.statistics.points}</span>
+        <span className="highlight-col">{p.statistics.points}</span>
         <span>{p.statistics.fieldGoalsMade}-{p.statistics.fieldGoalsAttempted}</span>
         <span>{p.statistics.fieldGoalsPercentage === 1 ? 100 : (Math.round(p.statistics.fieldGoalsPercentage * 100 * 10) / 10).toFixed(1)}</span>
         <span>{p.statistics.threePointersMade}-{p.statistics.threePointersAttempted}</span>
         <span>{p.statistics.threePointersPercentage === 1 ? 100 : (Math.round(p.statistics.threePointersPercentage * 100 * 10) / 10).toFixed(1)}</span>
         <span>{p.statistics.freeThrowsMade}-{p.statistics.freeThrowsAttempted}</span>
         <span>{p.statistics.freeThrowsPercentage === 1 ? 100 : (Math.round(p.statistics.freeThrowsPercentage * 100 * 10) / 10).toFixed(1)}</span>
-        <span>{p.statistics.reboundsTotal}</span>
+        <span className="highlight-col">{p.statistics.reboundsTotal}</span>
         <span>{p.statistics.reboundsOffensive}</span>
         <span>{p.statistics.reboundsDefensive}</span>
-        <span>{p.statistics.assists}</span>
+        <span className="highlight-col">{p.statistics.assists}</span>
         <span>{p.statistics.steals}</span>
         <span>{p.statistics.blocks}</span>
         <span>{p.statistics.turnovers}</span>
@@ -69,9 +68,7 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
   });
   if (!showMore) {
     teamBox = teamBox.slice(0, 5);
-    leftCol = leftCol.slice(0, 6)
   }
-  leftCol.push(<div key="team-total-label" className={teamBox.length % 2 === 0 ? 'even' : 'odd'}><span className="playerNameCol">TEAM</span></div>)
 
   let fg;
   if ((teamTotals.fieldGoalsMade / teamTotals.fieldGoalsAttempted) === 1) {
@@ -102,18 +99,19 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
   }
   const totalRow = teamBox && (
     <div key="team-total-row" className={ "rowGrid stat " + (teamBox.length % 2 === 0 ? 'even' : 'odd')}>
+      <span className="playerNameCol">TEAM</span>
       <span></span>
-      <span>{teamTotals.points}</span>
+      <span className="highlight-col">{teamTotals.points}</span>
       <span>{teamTotals.fieldGoalsMade}-{teamTotals.fieldGoalsAttempted}</span>
       <span>{fg}</span>
       <span>{teamTotals.threePointersMade}-{teamTotals.threePointersAttempted}</span>
       <span>{pt3}</span>
       <span>{teamTotals.freeThrowsMade}-{teamTotals.freeThrowsAttempted}</span>
       <span>{ft}</span>
-      <span>{teamTotals.reboundsTotal}</span>
+      <span className="highlight-col">{teamTotals.reboundsTotal}</span>
       <span>{teamTotals.reboundsOffensive}</span>
       <span>{teamTotals.reboundsDefensive}</span>
-      <span>{teamTotals.assists}</span>
+      <span className="highlight-col">{teamTotals.assists}</span>
       <span>{teamTotals.steals}</span>
       <span>{teamTotals.blocks}</span>
       <span>{teamTotals.turnovers}</span>
@@ -124,18 +122,19 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
 
   const statHeadings = (
     <div key="stat-headings" className="rowGrid statHeadings">
+      <span className="playerNameCol">PLAYER</span>
       <span>MIN</span>
-      <span>PTS</span>
+      <span className="highlight-col">PTS</span>
       <span>FGM-A</span>
       <span>FG%</span>
       <span>3PM-A</span>
       <span>3P%</span>
       <span>FTM-A</span>
       <span>FT%</span>
-      <span>REB</span>
+      <span className="highlight-col">REB</span>
       <span>OREB</span>
       <span>DREB</span>
-      <span>AST</span>
+      <span className="highlight-col">AST</span>
       <span>STL</span>
       <span>BLK</span>
       <span>TO</span>
@@ -162,13 +161,8 @@ export default function(team, showButton, showMore, setShowMore, scrollPos, setS
           {showButton && <div className='showMore' onClick={() => setShowMore(!showMore)}><IconButton onClick={() =>{}}>{showMore ? <UnfoldLess /> : <UnfoldMore />}</IconButton></div>}
         </div>
       </div>
-      <div className="fullTeam">
-        <div className="leftCol">
-          {leftCol}
-        </div>
-        <div ref={ref} className="scrollCols" onScroll={e => setScrollPos(e.target.scrollLeft)}>
-          {teamBox}
-        </div>
+      <div ref={ref} className="tableWrapper" onScroll={e => setScrollPos(e.target.scrollLeft)}>
+        {teamBox}
       </div>
     </div>
   );
