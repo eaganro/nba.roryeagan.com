@@ -10,6 +10,7 @@ import Score from '../Score/Score';
 import Boxscore from '../Boxscore/Boxscore';
 import Play from '../Play/Play';
 import StatButtons from '../StatButtons/StatButtons';
+import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
 
 import { wsLocation, PREFIX } from '../../environment';
 
@@ -617,6 +618,7 @@ export default function App() {
 
   return (
     <div className='topLevel'>
+      <DarkModeToggle />
       <Schedule
         games={sortedGamesForSchedule}
         date={date}

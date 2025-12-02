@@ -2,50 +2,67 @@
  * Event type configuration with distinct shapes and accessible colors.
  * Each event type has a unique shape + color combination to reduce cognitive load
  * and improve accessibility for colorblind users.
+ * 
+ * Colors use CSS custom properties for dark mode support.
  */
 
 export const EVENT_TYPES = {
   point: {
     label: 'Point',
-    color: '#F59E0B', // Amber (darker)
+    colorVar: '--event-point',
+    fallback: '#F59E0B',
     shape: 'circle',
   },
   miss: {
     label: 'Miss',
-    color: '#475569', // Slate (darker)
+    colorVar: '--event-miss',
+    fallback: '#475569',
     shape: 'cross',
   },
   rebound: {
     label: 'Rebound',
-    color: '#2563EB', // Blue (darker)
+    colorVar: '--event-rebound',
+    fallback: '#2563EB',
     shape: 'diamond',
   },
   assist: {
     label: 'Assist',
-    color: '#059669', // Emerald (darker)
+    colorVar: '--event-assist',
+    fallback: '#059669',
     shape: 'chevron',
   },
   turnover: {
     label: 'Turnover',
-    color: '#DC2626', // Red (darker)
+    colorVar: '--event-turnover',
+    fallback: '#DC2626',
     shape: 'triangleDown',
   },
   block: {
     label: 'Block',
-    color: '#7C3AED', // Purple (darker)
+    colorVar: '--event-block',
+    fallback: '#7C3AED',
     shape: 'square',
   },
   steal: {
     label: 'Steal',
-    color: '#0891B2', // Cyan (darker)
+    colorVar: '--event-steal',
+    fallback: '#0891B2',
     shape: 'triangleUp',
   },
   foul: {
     label: 'Foul',
-    color: '#111827', // Dark gray (darker)
+    colorVar: '--event-foul',
+    fallback: '#111827',
     shape: 'hexagon',
   },
 };
+
+/**
+ * Get the CSS variable color string
+ */
+function getColor(config) {
+  return `var(${config.colorVar}, ${config.fallback})`;
+}
 
 /**
  * Detect event type from action description
@@ -79,7 +96,8 @@ export function renderEventShape(eventType, cx, cy, size, key, is3PT = false, ac
   const config = EVENT_TYPES[eventType];
   if (!config) return null;
   
-  const { color, shape } = config;
+  const color = getColor(config);
+  const { shape } = config;
   const s = size; // shorthand
   
   // Data attributes for hover detection
@@ -89,13 +107,16 @@ export function renderEventShape(eventType, cx, cy, size, key, is3PT = false, ac
     style: { cursor: 'pointer' }
   } : {};
   
+  // 3PT marker color also uses CSS variable
+  const markerColor = 'var(--event-3pt-marker, #DC2626)';
+  
   // Helper to create a group with optional 3PT marker
   const wrapWith3PT = (mainShape) => {
     if (!is3PT) return mainShape;
     return (
       <g key={key} {...dataAttrs}>
         {mainShape}
-        <circle cx={cx} cy={cy} r={s * 0.6} fill="#DC2626" style={{ pointerEvents: 'none' }} />
+        <circle cx={cx} cy={cy} r={s * 0.6} fill={markerColor} style={{ pointerEvents: 'none' }} />
       </g>
     );
   };
@@ -214,4 +235,3 @@ export function LegendShape({ eventType, size = 12, is3PT = false }) {
     </svg>
   );
 }
-

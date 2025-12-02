@@ -258,18 +258,18 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
 
   const timeline = [];
   // timeline.push(<line key={'secondLast'} x1={leftMargin + startx} y1={300 + starty} x2={leftMargin + width} y2={300 + starty} style={{ stroke: 'rgb(255,0,0)', strokeWidth:2 }} />)
-  timeline.unshift(<line key={'Last'} x1={0} y1={300} x2={leftMargin + width} y2={300} style={{ stroke: 'black', strokeWidth:1 }} />)
-  timeline.unshift(<line key={'q1'} x1={leftMargin + qWidth} y1={10} x2={leftMargin + qWidth} y2={590} style={{ stroke:'black', strokeWidth:1 }} />)
-  timeline.unshift(<line key={'q2'} x1={leftMargin + qWidth * 2} y1={10} x2={leftMargin + qWidth * 2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
-  timeline.unshift(<line key={'q3'} x1={leftMargin + qWidth * 3} y1={10} x2={leftMargin + qWidth * 3} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
+  timeline.unshift(<line key={'Last'} x1={0} y1={300} x2={leftMargin + width} y2={300} style={{ stroke: 'var(--line-color)', strokeWidth:1 }} />)
+  timeline.unshift(<line key={'q1'} x1={leftMargin + qWidth} y1={10} x2={leftMargin + qWidth} y2={590} style={{ stroke:'var(--line-color)', strokeWidth:1 }} />)
+  timeline.unshift(<line key={'q2'} x1={leftMargin + qWidth * 2} y1={10} x2={leftMargin + qWidth * 2} y2={590} style={{ stroke: 'var(--line-color)', strokeWidth: 1 }} />)
+  timeline.unshift(<line key={'q3'} x1={leftMargin + qWidth * 3} y1={10} x2={leftMargin + qWidth * 3} y2={590} style={{ stroke: 'var(--line-color)', strokeWidth: 1 }} />)
   for (let q = 4; q < numQs; q += 1) {
     let x1 = leftMargin + qWidth * 4 + (5/12 * qWidth) * (q - 4);
     let x2 = leftMargin + qWidth * 4 + (5/12 * qWidth) * (q - 4);
-    timeline.unshift(<line key={`q${q}`} x1={x1} y1={10} x2={x2} y2={590} style={{ stroke: 'black', strokeWidth: 1 }} />)
+    timeline.unshift(<line key={`q${q}`} x1={x1} y1={10} x2={x2} y2={590} style={{ stroke: 'var(--line-color)', strokeWidth: 1 }} />)
   }
 
   // Quarter labels (Q1, Q2, Q3, Q4, O1, O2, etc.)
-  const quarterLabelStyle = { fontSize: '10px', fill: '#666', fontWeight: 500 };
+  const quarterLabelStyle = { fontSize: '10px', fill: 'var(--quarter-label-color)', fontWeight: 500 };
   const otWidth = (5/12) * qWidth; // overtime period width
   
   // Q1 - Q4 labels centered in each quarter
@@ -303,11 +303,11 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
 
   for (let i = 0; i < numLines; i += 1) {
     let posy = 300 + ((i + 1) * lineJump) * - 300 / maxY
-    timeline.unshift(<line key={`sp${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={posy} x2={leftMargin + width} y2={posy} strokeDasharray={"5,5"} style={{ stroke: 'darkgrey', strokeWidth: 0.5 }} />)
+    timeline.unshift(<line key={`sp${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={posy} x2={leftMargin + width} y2={posy} strokeDasharray={"5,5"} style={{ stroke: 'var(--line-color-light)', strokeWidth: 0.5 }} />)
     timeline.unshift(<text key={`sp-label-${i}`} x={leftMargin - 10} y={posy + 4} textAnchor="end" style={quarterLabelStyle}>{(i + 1) * lineJump}</text>)
     
     let negy = 300 + (-1 * (i + 1) * lineJump) * - 300 / maxY
-    timeline.unshift(<line key={`sn${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={negy} x2={leftMargin + width} y2={negy} strokeDasharray={"5,5"} style={{ stroke: 'darkgrey', strokeWidth: 0.5 }} />)
+    timeline.unshift(<line key={`sn${i}-${awayTeamName}-${homeTeamName}`} x1={leftMargin - 5} y1={negy} x2={leftMargin + width} y2={negy} strokeDasharray={"5,5"} style={{ stroke: 'var(--line-color-light)', strokeWidth: 0.5 }} />)
     timeline.unshift(<text key={`sn-label-${i}`} x={leftMargin - 10} y={negy + 4} textAnchor="end" style={quarterLabelStyle}>{(i + 1) * lineJump}</text>)
   }
 
@@ -591,7 +591,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
                         {eventType ? (
                           <LegendShape eventType={eventType} size={10} is3PT={is3PT} />
                         ) : (
-                          <span style={{ color: 'darkgrey', fontWeight: 'bold' }}>—</span>
+                          <span style={{ color: 'var(--line-color-light)', fontWeight: 'bold' }}>—</span>
                         )}
                       </span>
                       <div className="action-description">{a.description}</div>
@@ -637,7 +637,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
                         {eventType ? (
                           <LegendShape eventType={eventType} size={10} is3PT={is3PT} />
                         ) : (
-                          <span style={{ color: 'darkgrey', fontWeight: 'bold' }}>—</span>
+                          <span style={{ color: 'var(--line-color-light)', fontWeight: 'bold' }}>—</span>
                         )}
                       </span>
                       <div className="action-description">{a.description}</div>
@@ -648,7 +648,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
             </>
           )}
           {infoLocked && (
-            <div style={{fontSize: '0.85em', color: '#888', marginTop: 6, lineHeight: 1.4}}>
+            <div style={{fontSize: '0.85em', color: 'var(--text-tertiary)', marginTop: 6, lineHeight: 1.4}}>
               <div>Click anywhere to unlock</div>
               <div style={{marginTop: 2}}>← → to navigate events</div>
             </div>
@@ -662,7 +662,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
       </svg>
       <svg height="600" width={width + leftMargin + rightMargin} className='line'>
         {mouseLinePos !== null ? 
-          <line x1={mouseLinePos} y1={10} x2={mouseLinePos} y2={590} style={{ stroke: 'grey', strokeWidth: 1 }} />
+          <line x1={mouseLinePos} y1={10} x2={mouseLinePos} y2={590} style={{ stroke: 'var(--mouse-line-color)', strokeWidth: 1 }} />
           : ''}
       </svg>
       <div className="teamName" style={{color: teamColors.away}}>{awayTeamName}</div>

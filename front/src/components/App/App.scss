@@ -4,13 +4,14 @@
   align-items: center;
   
   > div {
-    background-color: #fafafa;
+    background-color: var(--bg-card);
     width: 1235px;
     max-width: 90%;
     padding: 10px;
     border-radius: 20px;
     margin-bottom: 20px;
     box-sizing: border-box;
+    transition: background-color 0.3s ease;
   }
 }
 .playByPlaySection {
@@ -28,16 +29,5 @@
 }
 
 .dataRefresh .MuiCircularProgress-root {
-  color: #6c6d6f;
+  color: var(--circular-progress-color);
 }
-
-// .playByPlaySection {
-//   width: 1235px;
-//   max-width: 90%;
-//   padding: 10px;
-//   border-radius: 20px;
-//   background-color: #fafafa;
-//   // border: 10px solid red;
-//   margin-bottom: 20px;
-//   box-sizing: border-box;
-// }
