@@ -512,7 +512,11 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
               {descriptionArray[0] && (
                 <div className="time-score-header bottom">
                   <span className="time">{formatPeriod(descriptionArray[0].period)} {formatClock(descriptionArray[0].clock)}</span>
-                  <span className="score">{descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}</span>
+                  <span className="score">
+                    <span className="team-tricode away">{awayTeamNames.abr}</span>
+                    {descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}
+                    <span className="team-tricode home">{homeTeamNames.abr}</span>
+                  </span>
                 </div>
               )}
             </>
@@ -522,7 +526,11 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
               {descriptionArray[0] && (
                 <div className="time-score-header top">
                   <span className="time">{formatPeriod(descriptionArray[0].period)} {formatClock(descriptionArray[0].clock)}</span>
-                  <span className="score">{descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}</span>
+                  <span className="score">
+                    <span className="team-tricode away">{awayTeamNames.abr}</span>
+                    {descriptionArray[0].scoreAway} - {descriptionArray[0].scoreHome}
+                    <span className="team-tricode home">{homeTeamNames.abr}</span>
+                  </span>
                 </div>
               )}
               <div className="actions-container">
