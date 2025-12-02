@@ -59,4 +59,18 @@
     transition: all 0.15s ease;
     white-space: nowrap;
   }
+  
+  &.scoreDiff {
+    .scoreDiffIcon {
+      color: var(--score-diff-icon-color, #6366F1);
+    }
+  }
+}
+
+.separator {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-medium);
+  margin: 0 4px;
+  align-self: center;
 }

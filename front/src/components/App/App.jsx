@@ -144,6 +144,17 @@ export default function App() {
     }
     return [true, false, true, true, false, false, false, false];
   });
+  const [showScoreDiff, setShowScoreDiff] = useState(() => {
+    const saved = localStorage.getItem('showScoreDiff');
+    if (saved !== null) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return true;
+      }
+    }
+    return true;
+  });
   const [numQs, setNumQs] = useState(4);
   const [lastAction, setLastAction] = useState(null);
   const [selectionRangeSecs, setSelectionRangeSecs] = useState(null);
@@ -346,6 +357,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('statOn', JSON.stringify(statOn));
   }, [statOn]);
+
+  useEffect(() => {
+    localStorage.setItem('showScoreDiff', JSON.stringify(showScoreDiff));
+  }, [showScoreDiff]);
 
   // Delay showing loading indicator by 500ms to avoid flashing for fast loads
   useEffect(() => {
@@ -654,10 +669,13 @@ export default function App() {
           sectionWidth={playByPlaySectionWidth}
           lastAction={lastAction}
           isLoading={isPlayLoading && showLoading}
-          statusMessage={gameStatusMessage}></Play>
+          statusMessage={gameStatusMessage}
+          showScoreDiff={showScoreDiff}></Play>
         <StatButtons
           statOn={statOn}
           changeStatOn={changeStatOn}
+          showScoreDiff={showScoreDiff}
+          setShowScoreDiff={setShowScoreDiff}
           isLoading={isPlayLoading && showLoading}
           statusMessage={gameStatusMessage}></StatButtons>
       </div>

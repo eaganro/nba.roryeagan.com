@@ -9,7 +9,7 @@ import Player from './Player/Player';
 
 import './Play.scss';
 
-export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction, isLoading, statusMessage }) {
+export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePlayers, allActions, scoreTimeline, awayPlayerTimeline, homePlayerTimeline, numQs, sectionWidth, lastAction, isLoading, statusMessage, showScoreDiff = true }) {
 
   const [descriptionArray, setDescriptionArray] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -662,8 +662,8 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
       )}
       <svg height="600" width={width + leftMargin + rightMargin} className='line'>
         {timeline}
-        <polyline points={pospoints.join(' ')} style={{"fill": awayColor}}/>
-        <polyline points={negpoints.join(' ')} style={{"fill": homeColor}}/>
+        {showScoreDiff && <polyline points={pospoints.join(' ')} style={{"fill": awayColor}}/>}
+        {showScoreDiff && <polyline points={negpoints.join(' ')} style={{"fill": homeColor}}/>}
       </svg>
       <svg height="600" width={width + leftMargin + rightMargin} className='line'>
         {mouseLinePos !== null ? 
