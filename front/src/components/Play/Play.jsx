@@ -529,6 +529,31 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
     ? { position: 'absolute', left: relativeLeft, top: relativeTop, zIndex: 1000 }
     : { position: 'fixed', left: clampedLeft, top: clampedTop, zIndex: 1000 };
 
+  // Sort actions: away team first, then by event importance (points > assists > rebounds > others)
+  const getEventPriority = (description) => {
+    const desc = description.toLowerCase();
+    // Points (made shots, free throws made)
+    if (desc.includes('pts') || (desc.includes('free throw') && !desc.includes('miss'))) return 0;
+    // Assists
+    if (desc.includes('ast')) return 1;
+    // Rebounds
+    if (desc.includes('reb')) return 2;
+    // Everything else
+    return 3;
+  };
+
+  const sortedActions = [...descriptionArray].sort((a, b) => {
+    // Away team first (0), home team second (1)
+    const teamA = a.teamTricode === awayTeamNames.abr ? 0 : 1;
+    const teamB = b.teamTricode === awayTeamNames.abr ? 0 : 1;
+    if (teamA !== teamB) return teamA - teamB;
+    
+    // Within same team, sort by event importance
+    const priorityA = getEventPriority(a.description);
+    const priorityB = getEventPriority(b.description);
+    return priorityA - priorityB;
+  });
+
   return (
     <div
       ref={playRef}
@@ -553,7 +578,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
             // When mouse is in bottom half, put actions first, then time/score at bottom
             <>
               <div className="actions-container">
-                {descriptionArray.map((a, index) => {
+                {sortedActions.map((a, index) => {
                   const eventType = getEventType(a.description);
                   const is3PT = a.description.includes('3PT');
                   const actionTeamColor = a.teamTricode === awayTeamNames.abr 
@@ -599,7 +624,7 @@ export default function Play({ awayTeamNames, homeTeamNames, awayPlayers, homePl
                 </div>
               )}
               <div className="actions-container">
-                {descriptionArray.map((a, index) => {
+                {sortedActions.map((a, index) => {
                   const eventType = getEventType(a.description);
                   const is3PT = a.description.includes('3PT');
                   const actionTeamColor = a.teamTricode === awayTeamNames.abr 
