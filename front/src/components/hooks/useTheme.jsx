@@ -11,8 +11,8 @@ function getSystemPreference() {
   if (prefersDark.matches) return true;
   if (prefersLight.matches) return false;
   
-  // No system preference set, default to dark mode
-  return true;
+  // No system preference set, default to light mode
+  return false;
 }
 
 export function ThemeProvider({ children }) {
