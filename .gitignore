@@ -1,1 +1,9 @@
+# OS & Editor Configs
+.DS_Store
+.idea
 .vscode
+*.swp
+*.swo
+
+# Global Node dependencies
+node_modules/
