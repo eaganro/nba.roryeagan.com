@@ -4,28 +4,31 @@ import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   build: {
-    minify: 'terser', 
+    minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
       },
     },
-    outDir: resolve(__dirname, '../server/public/js'),
-    emptyOutDir: false,
-    assetsDir: '.',
+    outDir: 'dist',
+    emptyOutDir: true,
+    assetsDir: 'assets',
     cssCodeSplit: false,
     rollupOptions: {
-      input: resolve(__dirname, 'src/index.jsx'),
+      input: resolve(__dirname, 'index.html'),
       output: {
-        entryFileNames: 'main.js',
-        chunkFileNames: 'chunks/[name]-[hash].js',
+        entryFileNames: 'js/[name]-[hash].js',
+        chunkFileNames: 'js/chunks/[name]-[hash].js',
+        
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-            return 'style.css';
+          const name = assetInfo.names ? assetInfo.names[0] : assetInfo.name;
+          if (name && name.endsWith('.css')) {
+            return 'css/[name]-[hash][extname]';
           }
-          return '[name]-[hash][extname]';
+          return 'assets/[name]-[hash][extname]';
         },
       },
     },
